@@ -16,10 +16,10 @@ class Dataset(object):
         self.reflections = Reflections(reflections_fname)
         self.experiments = Experiments(experiments_fname)
         self.reflection_table = self.get_reflection_table(self.reflections.data, self.experiments.data, expand_to_p1)
-        self.reflection_table['RES_DENSITY'] = self.get_density(self.reflection_table['RES'])
-        self.reflection_table['RES_CUMSUM'] = self.get_cumulative_density(self.reflection_table['RES_DENSITY'])
-        self.reflection_table['WEIGHTED_DENSITY'] = self.get_missing_observed_density_abc_weighted('RES_CUMSUM')
-        self.reflection_table['MEANSHIFT_LABELS'] = self.get_meanshift_labels()
+        # self.reflection_table['RES_DENSITY'] = self.get_density(self.reflection_table['RES'])
+        # self.reflection_table['RES_CUMSUM'] = self.get_cumulative_density(self.reflection_table['RES_DENSITY'])
+        # self.reflection_table['WEIGHTED_DENSITY'] = self.get_missing_observed_density_abc_weighted('RES_CUMSUM')
+        # self.reflection_table['MEANSHIFT_LABELS'] = self.get_meanshift_labels()
 
     @staticmethod
     def get_reflection_table(reflections, experiments, expand_to_p1=True):
@@ -59,6 +59,20 @@ class Dataset(object):
         return kde(values)
 
     @staticmethod
+    def get_spherical_coords(df):
+        xyz = df[['A', 'B', 'C']]
+        ptsnew = np.hstack((xyz, np.zeros(xyz.shape)))
+        xy = xyz['A'] ** 2 + xyz['B'] ** 2
+        ptsnew[:, 3] = np.sqrt(xy + xyz['C'] ** 2)
+        ptsnew[:, 4] = np.arctan2(np.sqrt(xy), xyz['C'])  # for elevation angle defined from Z-axis down
+        # ptsnew[:,4] = np.arctan2(xyz[:,2], np.sqrt(xy)) # for elevation angle defined from XY-plane up
+        ptsnew[:, 5] = np.arctan2(xyz['B'], xyz['A'])
+        r = ptsnew[:, 3]
+        theta = ptsnew[:, 4]
+        phi = ptsnew[:, 5]
+        return r, theta, phi
+
+    @staticmethod
     def get_cumulative_density(density):
         cumsum = np.cumsum(density)[::-1]
         cumsum.reset_index(drop=True, inplace=True)
@@ -94,7 +108,8 @@ class Dataset(object):
         clustering = MeanShift(bandwidth=bandwidth, n_jobs=njobs).fit(X)
         labels = []
         idx = 0
-        for is_observed, abc_density in zip(self.reflection_table['OBSERVED'].to_list(), self.reflection_table['WEIGHTED_DENSITY'].to_list()):
+        for is_observed, abc_density in zip(self.reflection_table['OBSERVED'].to_list(),
+                                            self.reflection_table['WEIGHTED_DENSITY'].to_list()):
             if abc_density > 1.5 and not is_observed:
                 labels.append(clustering.labels_[idx])
                 idx += 1
