@@ -12,47 +12,16 @@ class Dataset(object):
 
     def __init__(self, experiments_fname, reflections_fname, expand_to_p1=True):
         self.error = False
+        self.table = None
         self.reflections_fname = reflections_fname
         self.experiments_fname = experiments_fname
         self.reflections = Reflections(reflections_fname)
         self.experiments = Experiments(experiments_fname)
-        self.table = self.get_reflection_table(self.reflections.data, self.experiments.data, expand_to_p1)
+        self.get_reflection_table(expand_to_p1)
         # self.table['RES_DENSITY'] = self.get_density(self.reflection_table['RES'])
         # self.table['RES_CUMSUM'] = self.get_cumulative_density(self.reflection_table['RES_DENSITY'])
         # self.table['WEIGHTED_DENSITY'] = self.get_missing_observed_density_abc_weighted('RES_CUMSUM')
         # self.table['MEANSHIFT_LABELS'] = self.get_meanshift_labels()
-
-    @staticmethod
-    def get_reflection_table(reflections, experiments, expand_to_p1=True):
-        miller_array = reflections.as_miller_array(experiments[0])
-        observed_set = miller_array.unique_under_symmetry().map_to_asu()
-        observed_set = observed_set.generate_bijvoet_mates()
-        complete_set = observed_set.complete_set()
-        missing_set = complete_set.lone_set(observed_set)
-
-        if expand_to_p1:
-            missing_set = missing_set.expand_to_p1()
-            complete_set = complete_set.expand_to_p1()
-
-        uc = complete_set.unit_cell()
-        complete_set_d_spacings = complete_set.d_spacings()
-
-        df = []
-        missing_indices = set(missing_set.indices())
-        for idx in complete_set_d_spacings:
-            rlp = uc.reciprocal_space_vector(idx[0])
-            if (idx[0][0], idx[0][1], idx[0][2]) in missing_indices:
-                row = [idx[0][0], idx[0][1], idx[0][2], rlp[0], rlp[1], rlp[2], idx[1], False]
-            else:
-                row = [idx[0][0], idx[0][1], idx[0][2], rlp[0], rlp[1], rlp[2], idx[1], True]
-
-            df.append(row)
-
-        df = pd.DataFrame(df)
-        df.columns = ['H', 'K', 'L', 'A', 'B', 'C', 'RES', 'OBSERVED']
-        df.sort_values(by='RES', inplace=True, ascending=False)
-        df.reset_index(drop=True, inplace=True)
-        return df
 
     @staticmethod
     def get_density(values):
@@ -85,6 +54,41 @@ class Dataset(object):
         values = tmp_df.T
         kde = gaussian_kde(values, weights=df[weigth])
         return kde(values)
+
+    def get_reflection_table(self, expand_to_p1=True):
+        miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
+        observed_set = miller_array.unique_under_symmetry().map_to_asu()
+        observed_set = observed_set.generate_bijvoet_mates()
+        complete_set = observed_set.complete_set()
+        missing_set = complete_set.lone_set(observed_set)
+
+        if expand_to_p1:
+            missing_set = missing_set.expand_to_p1()
+            complete_set = complete_set.expand_to_p1()
+
+        uc = complete_set.unit_cell()
+        complete_set_d_spacings = complete_set.d_spacings()
+
+        df = []
+        missing_indices = set(missing_set.indices())
+        for idx in complete_set_d_spacings:
+            rlp = uc.reciprocal_space_vector(idx[0])
+            if (idx[0][0], idx[0][1], idx[0][2]) in missing_indices:
+                row = [idx[0][0], idx[0][1], idx[0][2], rlp[0], rlp[1], rlp[2], idx[1], False]
+            else:
+                row = [idx[0][0], idx[0][1], idx[0][2], rlp[0], rlp[1], rlp[2], idx[1], True]
+
+            df.append(row)
+
+        df = pd.DataFrame(df)
+        df.columns = ['H', 'K', 'L', 'A', 'B', 'C', 'RES', 'OBSERVED']
+        df.sort_values(by='RES', inplace=True, ascending=False)
+        df.reset_index(drop=True, inplace=True)
+        r, theta, phi = self.get_spherical_coords(df)
+        df['r'] = r
+        df['phi'] = phi
+        df['theta'] = theta
+        self.table = df
 
     def get_unique_reflections(self):
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
