@@ -3,6 +3,7 @@ import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.spatial import ConvexHull
 from sklearn.cluster import MeanShift
+from cctbx import miller
 from confetti.io.reflections_parser import Reflections
 from confetti.io.experiments_parser import Experiments
 
@@ -84,6 +85,37 @@ class Dataset(object):
         values = tmp_df.T
         kde = gaussian_kde(values, weights=df[weigth])
         return kde(values)
+
+    def get_unique_reflections(self):
+        miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
+        space_group = miller_array.space_group()
+        miller_unique = miller_array.unique_under_symmetry()
+
+        unique_idx = set(miller_unique.map_to_asu().complete_set().indices())
+        bijvoet_idx = set(miller_unique.generate_bijvoet_mates().map_to_asu().complete_set().indices())
+        all_indices = [(h, k, l) for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
+        is_bijvoet = []
+        is_unique = []
+        unique_dict = {}
+
+        for idx, index in enumerate(all_indices):
+            if index in bijvoet_idx:
+                is_bijvoet.append(True)
+            else:
+                is_bijvoet.append(False)
+            if index in unique_idx:
+                is_unique.append(True)
+                equiv_indices = [equiv.mate().hr() for equiv in miller.sym_equiv_indices(space_group, index).indices()]
+                equiv_indices += [equiv.mate().h() for equiv in miller.sym_equiv_indices(space_group, index).indices()]
+                for equiv in equiv_indices:
+                    unique_dict[equiv] = idx
+            else:
+                is_unique.append(False)
+        unique_ids = [unique_dict[(h, k, l)] for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
+
+        self.table['IS_UNIQUE'] = is_unique
+        self.table['IS_BIJVOET'] = is_bijvoet
+        self.table['UNIQUE_ID'] = unique_ids
 
     def get_missing_observed_density_abc_weighted(self, weight):
 
