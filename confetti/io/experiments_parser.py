@@ -6,10 +6,6 @@ from dxtbx.model.experiment_list import ExperimentListFactory
 
 class Experiments(Parser):
 
-    def __init__(self, fname):
-        self.data = None
-        super(Parser, self).__init__(fname=fname)
-
     def _parse(self):
         self.data = self.read_experiments(self.fname)
 

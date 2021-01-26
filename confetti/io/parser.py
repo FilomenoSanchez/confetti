@@ -10,6 +10,7 @@ class Parser(ABC):
     def __init__(self, fname):
         self.fname = fname
         self.error = False
+        self.data = None
         self.logger = logging.getLogger(__name__)
         self.parse()
 

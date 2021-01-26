@@ -5,10 +5,6 @@ from dials.util.phil import FilenameDataWrapper
 
 class Reflections(Parser):
 
-    def __init__(self, fname):
-        self.data = None
-        super(Parser, self).__init__(fname=fname)
-
     def _parse(self):
         self.data = self.read_reflections(self.fname)
 
