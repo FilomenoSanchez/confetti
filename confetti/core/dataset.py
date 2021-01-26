@@ -15,11 +15,11 @@ class Dataset(object):
         self.experiments_fname = experiments_fname
         self.reflections = Reflections(reflections_fname)
         self.experiments = Experiments(experiments_fname)
-        self.reflection_table = self.get_reflection_table(self.reflections.data, self.experiments.data, expand_to_p1)
-        # self.reflection_table['RES_DENSITY'] = self.get_density(self.reflection_table['RES'])
-        # self.reflection_table['RES_CUMSUM'] = self.get_cumulative_density(self.reflection_table['RES_DENSITY'])
-        # self.reflection_table['WEIGHTED_DENSITY'] = self.get_missing_observed_density_abc_weighted('RES_CUMSUM')
-        # self.reflection_table['MEANSHIFT_LABELS'] = self.get_meanshift_labels()
+        self.table = self.get_reflection_table(self.reflections.data, self.experiments.data, expand_to_p1)
+        # self.table['RES_DENSITY'] = self.get_density(self.reflection_table['RES'])
+        # self.table['RES_CUMSUM'] = self.get_cumulative_density(self.reflection_table['RES_DENSITY'])
+        # self.table['WEIGHTED_DENSITY'] = self.get_missing_observed_density_abc_weighted('RES_CUMSUM')
+        # self.table['MEANSHIFT_LABELS'] = self.get_meanshift_labels()
 
     @staticmethod
     def get_reflection_table(reflections, experiments, expand_to_p1=True):
@@ -87,14 +87,14 @@ class Dataset(object):
 
     def get_missing_observed_density_abc_weighted(self, weight):
 
-        obs_df = self.reflection_table[self.reflection_table['OBSERVED']]
-        missing_df = self.reflection_table[~self.reflection_table['OBSERVED']]
+        obs_df = self.table[self.table['OBSERVED']]
+        missing_df = self.table[~self.table['OBSERVED']]
         observed_density = self.get_density_abc_weighted(obs_df, weight)
         missing_density = self.get_density_abc_weighted(missing_df, weight)
         observed_idx = 0
         missing_idx = 0
         result = []
-        for is_observed in self.reflection_table['OBSERVED'].to_list():
+        for is_observed in self.table['OBSERVED'].to_list():
             if is_observed:
                 result.append(observed_density[observed_idx])
                 observed_idx += 1
@@ -104,12 +104,11 @@ class Dataset(object):
         return result
 
     def get_meanshift_labels(self, bandwidth=0.2, njobs=1):
-        X = self.reflection_table.loc[(~self.reflection_table['OBSERVED']) & (self.reflection_table['WEIGHTED_DENSITY'] > 1.5)][['A', 'B', 'C']]
+        X = self.table.loc[(~self.table['OBSERVED']) & (self.table['WEIGHTED_DENSITY'] > 1.5)][['A', 'B', 'C']]
         clustering = MeanShift(bandwidth=bandwidth, n_jobs=njobs).fit(X)
         labels = []
         idx = 0
-        for is_observed, abc_density in zip(self.reflection_table['OBSERVED'].to_list(),
-                                            self.reflection_table['WEIGHTED_DENSITY'].to_list()):
+        for is_observed, abc_density in zip(self.table['OBSERVED'].to_list(), self.table['WEIGHTED_DENSITY'].to_list()):
             if abc_density > 1.5 and not is_observed:
                 labels.append(clustering.labels_[idx])
                 idx += 1
@@ -119,7 +118,7 @@ class Dataset(object):
         return labels
 
     def get_cluster_hull(self, cluster_label):
-        tmp_df = self.reflection_table[self.reflection_table['MEANSHIFT_LABELS'] == cluster_label][['A', 'B', 'C']]
+        tmp_df = self.table[self.table['MEANSHIFT_LABELS'] == cluster_label][['A', 'B', 'C']]
         tmp_df.reset_index(drop=True, inplace=True)
         hull = ConvexHull(tmp_df)
         return hull
