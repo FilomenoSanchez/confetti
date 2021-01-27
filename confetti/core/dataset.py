@@ -19,17 +19,18 @@ class Dataset(object):
 
     @classmethod
     def from_raw_data(cls, experiments_fname, reflections_fname, expand_to_p1=True):
-        result = cls()
-        result.reflections = Reflections(reflections_fname)
-        result.experiments = Experiments(experiments_fname)
-        result.get_reflection_table(expand_to_p1)
-        return result
+        dataset = cls()
+        dataset.register_raw_data(experiments_fname, reflections_fname)
+        dataset.get_reflection_table(expand_to_p1)
+        return dataset
 
     @classmethod
     def from_csv(cls, csv_fname):
-        result = cls()
-        result.table = pd.read_csv(csv_fname)
-        return result
+        dataset = cls()
+        dataset.table = pd.read_csv(csv_fname)
+        if 'Unnamed: 0' in dataset.table.columns:
+            dataset.table.drop('Unnamed: 0', 1, inplace=True)
+        return dataset
 
     # ------------------ Static methods ------------------
 
@@ -67,7 +68,15 @@ class Dataset(object):
 
     # ------------------ Methods ------------------
 
+    def register_raw_data(self, experiments_fname, reflections_fname):
+        self.experiments = Experiments(experiments_fname)
+        self.reflections = Reflections(reflections_fname)
+
     def get_reflection_table(self, expand_to_p1=True):
+        if self.reflections is None:
+            print('No reflections provided!')
+            return
+
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         observed_set = miller_array.unique_under_symmetry().map_to_asu()
         observed_set = observed_set.generate_bijvoet_mates()
