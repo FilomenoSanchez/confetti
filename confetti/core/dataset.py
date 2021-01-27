@@ -245,8 +245,9 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
-        self.table['OBSERVED'] = new_df['OBSERVED']
+        observed_indices = set(self.reflections.data['miller_index'])
+        self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
+                                  for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
 
     def remove_coord_range(self, sample=0.1, coord='phi'):
         if self.reflections is None:
@@ -273,7 +274,6 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
-
-        assert self.table.shape[0] == new_df.shape[0], 'ERROR: Table mismatch'
-        self.table['OBSERVED'] = new_df['OBSERVED']
+        observed_indices = set(self.reflections.data['miller_index'])
+        self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
+                                  for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
