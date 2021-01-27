@@ -10,18 +10,28 @@ from confetti.io.experiments_parser import Experiments
 
 class Dataset(object):
 
-    def __init__(self, experiments_fname, reflections_fname, expand_to_p1=True):
-        self.error = False
+    def __init__(self):
         self.table = None
-        self.reflections_fname = reflections_fname
-        self.experiments_fname = experiments_fname
-        self.reflections = Reflections(reflections_fname)
-        self.experiments = Experiments(experiments_fname)
-        self.get_reflection_table(expand_to_p1)
-        # self.table['RES_DENSITY'] = self.get_density(self.reflection_table['RES'])
-        # self.table['RES_CUMSUM'] = self.get_cumulative_density(self.reflection_table['RES_DENSITY'])
-        # self.table['WEIGHTED_DENSITY'] = self.get_missing_observed_density_abc_weighted('RES_CUMSUM')
-        # self.table['MEANSHIFT_LABELS'] = self.get_meanshift_labels()
+        self.reflections = None
+        self.experiments = None
+
+    # ------------------ Class methods ------------------
+
+    @classmethod
+    def from_raw_data(cls, experiments_fname, reflections_fname, expand_to_p1=True):
+        result = cls()
+        result.reflections = Reflections(reflections_fname)
+        result.experiments = Experiments(experiments_fname)
+        result.get_reflection_table(expand_to_p1)
+        return result
+
+    @classmethod
+    def from_csv(cls, csv_fname):
+        result = cls()
+        result.table = pd.read_csv(csv_fname)
+        return result
+
+    # ------------------ Static methods ------------------
 
     @staticmethod
     def get_density(values):
@@ -54,6 +64,8 @@ class Dataset(object):
         values = tmp_df.T
         kde = gaussian_kde(values, weights=df[weigth])
         return kde(values)
+
+    # ------------------ Methods ------------------
 
     def get_reflection_table(self, expand_to_p1=True):
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
@@ -90,7 +102,15 @@ class Dataset(object):
         df['theta'] = theta
         self.table = df
 
+    def get_res_density(self):
+        self.table['RES_DENSITY'] = self.get_density(self.table['RES'])
+        self.table['RES_CUMSUM'] = self.get_cumulative_density(self.table['RES_DENSITY'])
+
     def get_unique_reflections(self):
+        if self.reflections is None:
+            print('No reflections provided!')
+            return
+
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         space_group = miller_array.space_group()
         miller_unique = miller_array.unique_under_symmetry()
@@ -137,7 +157,8 @@ class Dataset(object):
             else:
                 result.append(missing_density[missing_idx])
                 missing_idx += 1
-        return result
+
+        self.table['WEIGHTED_DENSITY'] = result
 
     def get_meanshift_labels(self, bandwidth=0.2, njobs=1):
         X = self.table.loc[(~self.table['OBSERVED']) & (self.table['WEIGHTED_DENSITY'] > 1.5)][['A', 'B', 'C']]
@@ -151,7 +172,7 @@ class Dataset(object):
             else:
                 labels.append(np.nan)
 
-        return labels
+        self.table['MEANSHIFT_LABELS'] = labels
 
     def get_cluster_hull(self, cluster_label):
         tmp_df = self.table[self.table['MEANSHIFT_LABELS'] == cluster_label][['A', 'B', 'C']]
