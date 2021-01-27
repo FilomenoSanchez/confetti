@@ -11,6 +11,7 @@ from confetti.io.experiments_parser import Experiments
 class Dataset(object):
 
     def __init__(self):
+        self.is_p1 = False
         self.table = None
         self.reflections = None
         self.experiments = None
@@ -25,11 +26,12 @@ class Dataset(object):
         return dataset
 
     @classmethod
-    def from_csv(cls, csv_fname):
+    def from_csv(cls, csv_fname, is_p1):
         dataset = cls()
         dataset.table = pd.read_csv(csv_fname)
         if 'Unnamed: 0' in dataset.table.columns:
             dataset.table.drop('Unnamed: 0', 1, inplace=True)
+        dataset.is_p1 = is_p1
         return dataset
 
     # ------------------ Properties ------------------
@@ -139,6 +141,7 @@ class Dataset(object):
         df['phi'] = phi
         df['theta'] = theta
         self.table = df
+        self.is_p1 = expand_to_p1
 
     def get_res_density(self):
         self.table['RES_DENSITY'] = self.get_density(self.table['RES'])
@@ -238,7 +241,7 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        new_df = self.compute_df(self.reflections.data, self.experiments.data)
+        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
         self.table['OBSERVED'] = new_df['OBSERVED']
 
     def remove_coord_range(self, sample=0.1, coord='phi'):
@@ -262,5 +265,5 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        new_df = self.compute_df(self.reflections.data, self.experiments.data)
+        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
         self.table['OBSERVED'] = new_df['OBSERVED']
