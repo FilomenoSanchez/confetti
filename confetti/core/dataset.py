@@ -37,6 +37,22 @@ class Dataset(object):
     # ------------------ Properties ------------------
 
     @property
+    def completeness(self):
+
+        miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
+        observed_set = miller_array.unique_under_symmetry().map_to_asu()
+        observed_set = observed_set.generate_bijvoet_mates()
+        print('Overall completeness: {}'.format(observed_set.completeness()))
+
+        print('Completeness by bins:')
+        binner = observed_set.setup_binner(auto_binning=True)
+        completeness = observed_set.completeness(use_binning=True)
+        for bin_idx, bin_completeness in zip(binner.range_all(), completeness.data):
+            print(bin_idx, binner.bin_d_range(bin_idx), bin_completeness)
+
+        return observed_set.completeness()
+
+    @property
     def ksd_r(self):
         ks = ks_2samp(self.table.r, self.table.loc[self.table.OBSERVED].r)
         return ks.statistic
@@ -96,13 +112,17 @@ class Dataset(object):
 
         miller_array = reflections.as_miller_array(experiments[0])
         observed_set = miller_array.unique_under_symmetry().map_to_asu()
-        observed_set = observed_set.generate_bijvoet_mates()
-        complete_set = observed_set.complete_set()
-        missing_set = complete_set.lone_set(observed_set)
 
         if expand_to_p1:
+            observed_set = observed_set.generate_bijvoet_mates()
+            complete_set = observed_set.complete_set()
+            missing_set = complete_set.lone_set(observed_set)
             missing_set = missing_set.expand_to_p1()
             complete_set = complete_set.expand_to_p1()
+
+        else:
+            complete_set = observed_set.complete_set()
+            missing_set = complete_set.lone_set(observed_set)
 
         uc = complete_set.unit_cell()
         complete_set_d_spacings = complete_set.d_spacings()
@@ -245,7 +265,9 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        observed_indices = set(self.reflections.data['miller_index'])
+        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
+        observed_indices = set(new_df[['H','K','L']].to_records(index=False).tolist())
+
         self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
                                   for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
 
@@ -274,6 +296,8 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        observed_indices = set(self.reflections.data['miller_index'])
+        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
+        observed_indices = set(new_df[['H','K','L']].to_records(index=False).tolist())
+
         self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
                                   for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
