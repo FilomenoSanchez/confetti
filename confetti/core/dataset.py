@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import gaussian_kde
 from scipy.spatial import ConvexHull
 from sklearn.cluster import MeanShift
-from cctbx import miller
+from cctbx import miller, array_family
 from confetti.io.reflections_parser import Reflections
 from confetti.io.experiments_parser import Experiments
 
@@ -40,7 +40,7 @@ class Dataset(object):
         return kde(values)
 
     @staticmethod
-    def get_spherical_coords(df):
+    def compute_spherical_coords(df):
         xyz = df[['A', 'B', 'C']]
         ptsnew = np.hstack((xyz, np.zeros(xyz.shape)))
         xy = xyz['A'] ** 2 + xyz['B'] ** 2
@@ -66,18 +66,10 @@ class Dataset(object):
         kde = gaussian_kde(values, weights=df[weigth])
         return kde(values)
 
-    # ------------------ Methods ------------------
+    @staticmethod
+    def compute_df(reflections, experiments, expand_to_p1=True):
 
-    def register_raw_data(self, experiments_fname, reflections_fname):
-        self.experiments = Experiments(experiments_fname)
-        self.reflections = Reflections(reflections_fname)
-
-    def get_reflection_table(self, expand_to_p1=True):
-        if self.reflections is None:
-            print('No reflections provided!')
-            return
-
-        miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
+        miller_array = reflections.as_miller_array(experiments[0])
         observed_set = miller_array.unique_under_symmetry().map_to_asu()
         observed_set = observed_set.generate_bijvoet_mates()
         complete_set = observed_set.complete_set()
@@ -105,7 +97,21 @@ class Dataset(object):
         df.columns = ['H', 'K', 'L', 'A', 'B', 'C', 'RES', 'OBSERVED']
         df.sort_values(by='RES', inplace=True, ascending=False)
         df.reset_index(drop=True, inplace=True)
-        r, theta, phi = self.get_spherical_coords(df)
+        return df
+
+    # ------------------ Methods ------------------
+
+    def register_raw_data(self, experiments_fname, reflections_fname):
+        self.experiments = Experiments(experiments_fname)
+        self.reflections = Reflections(reflections_fname)
+
+    def get_reflection_table(self, expand_to_p1=True):
+        if self.reflections is None:
+            print('No reflections provided!')
+            return
+
+        df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1)
+        r, theta, phi = self.compute_spherical_coords(df)
         df['r'] = r
         df['phi'] = phi
         df['theta'] = theta
@@ -188,3 +194,50 @@ class Dataset(object):
         tmp_df.reset_index(drop=True, inplace=True)
         hull = ConvexHull(tmp_df)
         return hull
+
+    def remove_random_sample(self, sample=0.1):
+        miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
+        space_group = miller_array.space_group()
+        delete_nreflections = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample)
+        print('Deleting {} reflections at random'.format(delete_nreflections))
+        df_to_delete = self.table.sample(n=delete_nreflections, axis=0)
+
+        idx_delete = []
+        for h, k, l in zip(df_to_delete.H, df_to_delete.K, df_to_delete.L):
+            idx_delete += [equiv.mate().hr() for equiv in miller.sym_equiv_indices(space_group, (h, k, l)).indices()]
+            idx_delete += [equiv.mate().h() for equiv in miller.sym_equiv_indices(space_group, (h, k, l)).indices()]
+        idx_delete = set(idx_delete)
+
+        array_delete = [1 if idx in idx_delete else 0 for idx in self.reflections.data['miller_index']]
+        array_delete = array_family.flex.int(array_delete)
+        self.reflections.data['to_delete'] = array_delete
+        sel = self.reflections.data['to_delete'] == 1
+        self.reflections.data.del_selected(sel)
+        del self.reflections.data['to_delete']
+
+        new_df = self.compute_df(self.reflections.data, self.experiments.data)
+        self.table['OBSERVED'] = new_df['OBSERVED']
+
+    def remove_coord_range(self, sample=0.1, coord='phi'):
+        miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
+        space_group = miller_array.space_group()
+        nreflections = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample)
+        coord_threshold = self.table.loc[(self.table.IS_UNIQUE)].sort_values(by=coord)[coord].to_list()[nreflections]
+        print('Deleting {} reflections below {} {}'.format(nreflections, coord, coord_threshold))
+        df_to_delete = self.table.loc[(self.table[coord] < coord_threshold) & (self.table.IS_UNIQUE)]
+
+        idx_delete = []
+        for h, k, l in zip(df_to_delete.H, df_to_delete.K, df_to_delete.L):
+            idx_delete += [equiv.mate().hr() for equiv in miller.sym_equiv_indices(space_group, (h, k, l)).indices()]
+            idx_delete += [equiv.mate().h() for equiv in miller.sym_equiv_indices(space_group, (h, k, l)).indices()]
+        idx_delete = set(idx_delete)
+
+        array_delete = [1 if idx in idx_delete else 0 for idx in self.reflections.data['miller_index']]
+        array_delete = array_family.flex.int(array_delete)
+        self.reflections.data['to_delete'] = array_delete
+        sel = self.reflections.data['to_delete'] == 1
+        self.reflections.data.del_selected(sel)
+        del self.reflections.data['to_delete']
+
+        new_df = self.compute_df(self.reflections.data, self.experiments.data)
+        self.table['OBSERVED'] = new_df['OBSERVED']
