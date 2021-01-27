@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy.stats import gaussian_kde
+from scipy.stats import gaussian_kde, ks_2samp
 from scipy.spatial import ConvexHull
 from sklearn.cluster import MeanShift
 from cctbx import miller, array_family
@@ -31,6 +31,29 @@ class Dataset(object):
         if 'Unnamed: 0' in dataset.table.columns:
             dataset.table.drop('Unnamed: 0', 1, inplace=True)
         return dataset
+
+    # ------------------ Properties ------------------
+
+    @property
+    def ksd_r(self):
+        ks = ks_2samp(self.table.r, self.table.loc[self.table.OBSERVED].r)
+        return ks.statistic
+
+    @property
+    def ksd_r_prime(self):
+        ks = ks_2samp(np.cumsum(self.table['RES'].sort_values(ascending=True)),
+                      np.cumsum(self.table.loc[(self.table.OBSERVED)]['RES'].sort_values(ascending=True)))
+        return ks.statistic
+
+    @property
+    def ksd_theta(self):
+        ks = ks_2samp(self.table.theta, self.table.loc[self.table.OBSERVED].theta)
+        return ks.statistic
+
+    @property
+    def ksd_phi(self):
+        ks = ks_2samp(self.table.phi, self.table.loc[self.table.OBSERVED].phi)
+        return ks.statistic
 
     # ------------------ Static methods ------------------
 
