@@ -132,7 +132,7 @@ class Dataset(object):
 
     def get_reflection_table(self, expand_to_p1=True):
         if self.reflections is None:
-            print('No reflections provided!')
+            print('No reflections registered!')
             return
 
         df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1)
@@ -149,7 +149,7 @@ class Dataset(object):
 
     def get_unique_reflections(self):
         if self.reflections is None:
-            print('No reflections provided!')
+            print('No reflections registered!')
             return
 
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
@@ -222,6 +222,10 @@ class Dataset(object):
         return hull
 
     def remove_random_sample(self, sample=0.1):
+        if self.reflections is None:
+            print('No reflections registered!')
+            return
+
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         space_group = miller_array.space_group()
         delete_nreflections = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample)
@@ -245,6 +249,10 @@ class Dataset(object):
         self.table['OBSERVED'] = new_df['OBSERVED']
 
     def remove_coord_range(self, sample=0.1, coord='phi'):
+        if self.reflections is None:
+            print('No reflections registered!')
+            return
+
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         space_group = miller_array.space_group()
         nreflections = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample)
@@ -266,4 +274,6 @@ class Dataset(object):
         del self.reflections.data['to_delete']
 
         new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
+
+        assert self.table.shape[0] == new_df.shape[0], 'ERROR: Table mismatch'
         self.table['OBSERVED'] = new_df['OBSERVED']
