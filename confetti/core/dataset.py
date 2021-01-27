@@ -266,7 +266,7 @@ class Dataset(object):
         del self.reflections.data['to_delete']
 
         new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
-        observed_indices = set(new_df[['H','K','L']].to_records(index=False).tolist())
+        observed_indices = set(new_df.loc[new_df.OBSERVED][['H', 'K', 'L']].to_records(index=False).tolist())
 
         self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
                                   for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
@@ -297,7 +297,7 @@ class Dataset(object):
         del self.reflections.data['to_delete']
 
         new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
-        observed_indices = set(new_df[['H','K','L']].to_records(index=False).tolist())
+        observed_indices = set(new_df.loc[new_df.OBSERVED][['H', 'K', 'L']].to_records(index=False).tolist())
 
         self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
                                   for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
