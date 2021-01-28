@@ -146,9 +146,18 @@ class Dataset(object):
 
     # ------------------ Methods ------------------
 
-    def register_raw_data(self, experiments_fname, reflections_fname):
+    def register_raw_data(self, experiments_fname, reflections_fname, update_table=False):
         self.experiments = Experiments(experiments_fname)
         self.reflections = Reflections(reflections_fname)
+
+        if update_table:
+            self.update_table()
+
+    def update_table(self):
+        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
+        observed_indices = set(new_df.loc[new_df.OBSERVED][['H', 'K', 'L']].to_records(index=False).tolist())
+        self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
+                                  for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
 
     def get_reflection_table(self, expand_to_p1=True):
         if self.reflections is None:
@@ -265,11 +274,7 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
-        observed_indices = set(new_df.loc[new_df.OBSERVED][['H', 'K', 'L']].to_records(index=False).tolist())
-
-        self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
-                                  for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
+        self.update_table()
 
     def remove_coord_range(self, sample=0.1, coord='phi'):
         if self.reflections is None:
@@ -296,8 +301,4 @@ class Dataset(object):
         self.reflections.data.del_selected(sel)
         del self.reflections.data['to_delete']
 
-        new_df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1=self.is_p1)
-        observed_indices = set(new_df.loc[new_df.OBSERVED][['H', 'K', 'L']].to_records(index=False).tolist())
-
-        self.table['OBSERVED'] = [True if (h, k, l) in observed_indices else False
-                                  for h, k, l in zip(self.table.H, self.table.K, self.table.L)]
+        self.update_table()
