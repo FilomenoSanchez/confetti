@@ -8,6 +8,8 @@ class Experiments(Parser):
 
     def _parse(self):
         self.data = self.read_experiments(self.fname)
+        self.templates = (imageset.get_template() for imageset in self.data.imagesets())
+        self.imagesets = (imageset.paths() for imageset in self.data.imagesets())
 
     @staticmethod
     def read_experiments(fname):
@@ -17,7 +19,4 @@ class Experiments(Parser):
         )
         return wrapper.data
 
-    @staticmethod
-    def load_templates(experiments):
-        return [img_set.get_template() for img_set in experiments.imagesets()]
 

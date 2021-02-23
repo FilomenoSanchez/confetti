@@ -19,7 +19,7 @@ class SweepArray(object):
         self.max_concurrent_nprocs = max_concurrent_nprocs
         self.platform = platform
         self.shell_interpreter = "/bin/bash"
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger(__name__)
 
     @property
     def dials_exe(self):
@@ -55,12 +55,12 @@ class SweepArray(object):
         workdir = os.path.join(self.workdir, 'sweeps')
         os.mkdir(workdir)
 
-        for idx, imageset in enumerate(self.imported_expt.data.imagesets(), 1):
+        for idx, imageset in enumerate(self.imported_expt.imagesets, 1):
 
-            if imageset.size() == 1:
+            if len(imageset) == 1:
                 continue
 
-            sweep = Sweep(idx, workdir, imageset.paths())
+            sweep = Sweep(idx, workdir, imageset)
             sweep.dials_exe = self.dials_exe
             sweep.dump_pickle()
             self.scripts.append(sweep.script)

@@ -15,7 +15,7 @@ class Sweep(object):
         self.error = False
         self.dials_exe = 'dials'
         self.pickle_fname = os.path.join(self.workdir, 'sweep.pckl')
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger(__name__)
 
     # ------------------ Class methods ------------------
 
