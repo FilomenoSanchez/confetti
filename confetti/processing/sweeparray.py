@@ -55,7 +55,7 @@ class SweepArray(object):
         workdir = os.path.join(self.workdir, 'sweeps')
         os.mkdir(workdir)
 
-        for idx, imageset in enumerate(self.imported_expt.imagesets()):
+        for idx, imageset in enumerate(self.imported_expt.data.imagesets(), 1):
 
             if imageset.size() == 1:
                 continue

@@ -14,6 +14,7 @@ class Sweep(object):
         self.workdir = os.path.join(workdir, 'sweep_{}'.format(id))
         self.error = False
         self.dials_exe = 'dials'
+        self.pickle_fname = os.path.join(self.workdir, 'sweep.pckl')
         self.logger = logging.getLogger()
 
     # ------------------ Class methods ------------------
@@ -43,21 +44,17 @@ class Sweep(object):
         return experiments[0].identifier
 
     @property
-    def pickle_fname(self):
-        return os.path.join(self.workdir, 'sweep.pckl')
-
-    @property
     def python_script(self):
         return """{dials_exe}.python << EOF
 from confetti.processing import Sweep
-sweep = Sweep('dummy', 'dummy', 'dummy').from_pickle({pickle_fname})
+sweep = Sweep('dummy', 'dummy', 'dummy').from_pickle('{pickle_fname}')
 sweep.process()
 sweep.dump_pickle()
 EOF""".format(**self.__dict__)
 
     @property
     def script(self):
-        script = pyjob.Script(directory=self.workdir, prefix='sweep_'.format(self.id.lower()), stem='', suffix='.sh')
+        script = pyjob.Script(directory=self.workdir, prefix='sweep_{}'.format(self.id), stem='', suffix='.sh')
         script.append(self.python_script)
         return script
 
@@ -77,7 +74,7 @@ EOF""".format(**self.__dict__)
         os.chdir(self.workdir)
 
         # Import data and find spots
-        cmd = '{}.import {}'.format(self.dials_exe, self.image_fnames).split()
+        cmd = ['{}.import'.format(self.dials_exe), *self.image_fnames]
         pyjob.cexec(cmd)
         cmd = 'dials.find_spots imported.expt'.split()
         pyjob.cexec(cmd)
@@ -85,7 +82,7 @@ EOF""".format(**self.__dict__)
         # Indexing in P1
         cmd = "{}.index imported.expt strong.refl".format(self.dials_exe).split()
         pyjob.cexec(cmd)
-        if not os.path.isfile("P1_models.expt"):
+        if not os.path.isfile("indexed.expt"):
             self.logger.error("Sweep {} failed in initial indexing".format(self.id))
             self.error = True
             return
