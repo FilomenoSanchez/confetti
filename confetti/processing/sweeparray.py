@@ -85,3 +85,9 @@ class SweepArray(object):
             for experiment in sweep_experiments.data:
                 experiment.beam.set_wavelength(wavelength)
             sweep_experiments.data.as_file()
+
+    def slice_sweeps(self, slice):
+        new_imagesets = []
+        for imageset in self.imported_expt.imagesets:
+            new_imagesets.append(imageset[slice])
+        self.imported_expt.imagesets = tuple(new_imagesets)
