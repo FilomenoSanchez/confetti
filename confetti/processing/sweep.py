@@ -4,6 +4,7 @@ import pickle
 import logging
 from cached_property import cached_property
 from confetti.io import Experiments
+import confetti.wrappers
 
 
 class Sweep(object):
@@ -73,42 +74,40 @@ EOF""".format(**self.__dict__)
         self.make_workdir()
         os.chdir(self.workdir)
 
-        # Import data and find spots
-        cmd = ['{}.import'.format(self.dials_exe), *self.image_fnames]
-        pyjob.cexec(cmd)
-        cmd = 'dials.find_spots imported.expt'.split()
-        pyjob.cexec(cmd)
+        dials_import = confetti.wrappers.DialsImport(self.workdir, ' '.join(self.image_fnames), self.dials_exe)
+        if dials_import.error:
+            self.logger.error('Sweep {} failed trying to import image data'.format(self.id))
+            self.error = True
+            return
 
-        # Indexing in P1
-        cmd = "{}.index imported.expt strong.refl".format(self.dials_exe).split()
-        pyjob.cexec(cmd)
-        if not os.path.isfile("indexed.expt"):
+        dials_find_spots = confetti.wrappers.DialsFindSpots(self.workdir, 'imported.expt', self.dials_exe)
+        if dials_find_spots.error:
+            self.logger.error('Sweep {} failed trying to find spots'.format(self.id))
+            self.error = True
+            return
+
+        dials_index = confetti.wrappers.DialsIndex(self.workdir, 'imported.expt', 'strong.refl', self.dials_exe)
+        if dials_index.error:
             self.logger.error("Sweep {} failed in initial indexing".format(self.id))
             self.error = True
             return
 
-        # Model refinement
-        cmd = "{}.refine indexed.expt indexed.refl scan_varying=false " \
-              "outlier.algorithm=tukey".format(self.dials_exe).split()
-        pyjob.cexec(cmd)
-        if not os.path.isfile("refined.expt"):
+        dials_refine = confetti.wrappers.DialsRefine(self.workdir, 'indexed.expt', 'indexed.refl',
+                                                     dials_exe=self.dials_exe)
+        if dials_refine.error:
             self.logger.error("Sweep {} failed in refinement".format(self.id))
             self.error = True
             return
 
-        # Do not use the result for scaling/merging!
-        cmd = "{}.integrate refined.expt indexed.refl".format(self.dials_exe).split()
-        pyjob.cexec(cmd)
-        if not os.path.isfile("integrated.refl"):
+        dials_integrate = confetti.wrappers.DialsIntegrate(self.workdir, 'refined.expt', 'indexed.refl', self.dials_exe)
+        if dials_integrate.error:
             self.logger.error("Sweep {} failed during integration".format(self.id))
             self.error = True
             return
 
-        # create MTZ
-        cmd = "{}.export refined.expt integrated.refl intensity=sum " \
-              "mtz.hklout=integrated.mtz".format(self.dials_exe).split()
-        pyjob.cexec(cmd)
-        if not os.path.isfile("integrated.mtz"):
+        dials_export = confetti.wrappers.DialsExport(self.workdir, 'refined.expt', 'integrated.refl',
+                                                     dials_exe=self.dials_exe)
+        if dials_export.error:
             self.logger.error("Sweep {} failed during MTZ export".format(self.id))
             self.error = True
             return
