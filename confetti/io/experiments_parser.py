@@ -10,6 +10,7 @@ class Experiments(Parser):
         self.data = self.read_experiments(self.fname)
         self.templates = (imageset.get_template() for imageset in self.data.imagesets())
         self.imagesets = (imageset.paths() for imageset in self.data.imagesets())
+        self.identifiers = (experiment.identifier for experiment in self.data)
 
     @staticmethod
     def read_experiments(fname):
