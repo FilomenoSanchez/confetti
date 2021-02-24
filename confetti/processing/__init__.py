@@ -17,3 +17,10 @@ def Cluster(*args, **kwargs):
     from confetti.processing.cluster import Cluster
 
     return Cluster(*args, **kwargs)
+
+
+def ClusterSequence(*args, **kwargs):
+    """:py:obj:`~confetti.processing.clustersequence.ClusterSequence` instance"""
+    from confetti.processing.clustersequence import ClusterSequence
+
+    return ClusterSequence(*args, **kwargs)
