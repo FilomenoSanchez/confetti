@@ -84,7 +84,7 @@ class SweepArray(object):
             sweep_experiments = Experiments(sweep.integrated_experiments)
             for experiment in sweep_experiments.data:
                 experiment.beam.set_wavelength(wavelength)
-            sweep_experiments.data.as_file()
+            sweep_experiments.data.as_file(sweep.integrated_experiments)
 
     def slice_sweeps(self, slice):
         new_imagesets = []
