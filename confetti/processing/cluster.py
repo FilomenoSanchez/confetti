@@ -15,8 +15,8 @@ class Cluster(object):
         self.dials_exe = 'dials'
         self.logger = logging.getLogger(__name__)
         self.sweeps_dir = sweeps_dir
-        self.experiments_identifiers = None
-        self.nclusters = None
+        self.experiments_identifiers = []
+        self.nclusters = 0
         self.exclude_sweeps = []
 
     # ------------------ General properties ------------------
@@ -41,7 +41,7 @@ class Cluster(object):
                 expt_list.append(experiments_fname)
                 refl_list.append(reflections_fname)
 
-        return ' '.join(expt_list + refl_list)
+        return ' '.join(sorted(expt_list) + sorted(refl_list))
 
     def make_workdir(self):
         if not os.path.isdir(self.workdir):
@@ -56,12 +56,12 @@ class Cluster(object):
         dials_cosym = confetti.wrappers.DialsCosym(self.workdir, self.input_fnames, self.dials_exe,
                                                    self.clustering_threshold, self.nprocs)
         dials_cosym.run()
+        self.experiments_identifiers = dials_cosym.cluster_experiment_identifiers
+        self.nclusters = dials_cosym.nclusters
         if dials_cosym.error:
             self.logger.error('Cluster_{} failed to run cosym'.format(self.id))
             self.error = True
             return
-        self.experiments_identifiers = dials_cosym.cluster_experiment_identifiers
-        self.nclusters = dials_cosym.nclusters
 
         dials_resolution = confetti.wrappers.DialsEstimateResolution(self.workdir, 'symmetrized.*', self.dials_exe)
         dials_resolution.run()
