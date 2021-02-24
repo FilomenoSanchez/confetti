@@ -24,3 +24,10 @@ def ClusterSequence(*args, **kwargs):
     from confetti.processing.clustersequence import ClusterSequence
 
     return ClusterSequence(*args, **kwargs)
+
+
+def ClusterArray(*args, **kwargs):
+    """:py:obj:`~confetti.processing.clusterarray.ClusterArray` instance"""
+    from confetti.processing.clusterarray import ClusterArray
+
+    return ClusterArray(*args, **kwargs)

@@ -34,7 +34,7 @@ class ClusterSequence(object):
         return """{dials_exe}.python << EOF
 from confetti.processing import ClusterSequence
 cluster_sequence = ClusterSequence('dummy', 'dummy', 'dummy').from_pickle('{pickle_fname}')
-cluster_sequence.dials_exe = {dials_exe}
+cluster_sequence.dials_exe = '{dials_exe}'
 cluster_sequence.process()
 cluster_sequence.dump_pickle()
 EOF""".format(**self.__dict__)
