@@ -1,5 +1,5 @@
 import os
-import pyjob
+import subprocess
 from confetti.wrappers.wrapper import Wrapper
 
 
@@ -35,7 +35,8 @@ class DialsScale(Wrapper):
                "deltacchalf.max_cycles={deltacchalf_max_cycles}".format(**self.__dict__).split()
 
     def _run(self):
-        pyjob.cexec(self.cmd)
+        p = subprocess.Popen(self.cmd)
+        p.communicate()
 
     def _parse_output(self):
         pass

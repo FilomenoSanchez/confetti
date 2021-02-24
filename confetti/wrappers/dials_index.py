@@ -1,5 +1,5 @@
 import os
-import pyjob
+import subprocess
 from confetti.wrappers.wrapper import Wrapper
 
 
@@ -24,7 +24,8 @@ class DialsIndex(Wrapper):
         return "{dials_exe}.index {experiments_fname} {reflections_fname}".format(**self.__dict__).split()
 
     def _run(self):
-        pyjob.cexec(self.cmd)
+        p = subprocess.Popen(self.cmd)
+        p.communicate()
 
     def _parse_output(self):
         pass
