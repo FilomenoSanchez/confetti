@@ -81,6 +81,8 @@ class SweepArray(object):
             wavelength = Experiments(self.sweeps[0].integrated_experiments).data[0].beam.get_wavelength()
 
         for sweep in self.sweeps:
+            if sweep.error:
+                continue
             sweep_experiments = Experiments(sweep.integrated_experiments)
             for experiment in sweep_experiments.data:
                 experiment.beam.set_wavelength(wavelength)
