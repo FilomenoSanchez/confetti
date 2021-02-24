@@ -20,7 +20,7 @@ class FreeRFlag(Wrapper):
 
     @property
     def cmd(self):
-        return "freerflag {hklin} {hklout}".format(**self.__dict__).split()
+        return "freerflag hklin {hklin} hklout {hklout}".format(**self.__dict__).split()
 
     def _run(self):
         pyjob.cexec(self.cmd, stdin=self.keywords)
