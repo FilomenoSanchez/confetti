@@ -13,7 +13,7 @@ class ClusterSequence(object):
     def __init__(self, id, workdir, sweeps_dir, nprocs=1, clustering_threshold=5000):
         self.id = id
         self.sweeps_dir = sweeps_dir
-        self.workdir = workdir
+        self.workdir = os.path.join(workdir, 'cluster_sequence_{}'.format(id))
         self.dials_exe = 'dials'
         self.clusters = []
         self.pickle_fname = os.path.join(self.workdir, 'clustersequence.pckl')
@@ -78,8 +78,8 @@ EOF""".format(**self.__dict__)
 
         while not solved:
             cluster_id = string.ascii_letters[idx]
-            cluster_workdir = os.path.join(self.workdir, 'cluster_{}'.format(cluster_id))
-            cluster = Cluster(cluster_id, cluster_workdir, self.sweeps_dir, self.clustering_threshold, self.nprocs)
+
+            cluster = Cluster(cluster_id, self.workdir, self.sweeps_dir, self.clustering_threshold, self.nprocs)
             cluster.exclude_sweeps = self.exclude_sweeps
             cluster.dials_exe = self.dials_exe
             self.logger.info('Processing Cluster_{}'.format(cluster_id))
