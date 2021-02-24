@@ -1,5 +1,5 @@
 import os
-import pyjob
+import subprocess
 from confetti.wrappers.wrapper import Wrapper
 
 
@@ -24,7 +24,8 @@ class DialsEstimateResolution(Wrapper):
         return "{dials_exe}.estimate_resolution {input_fnames}".format(**self.__dict__).split()
 
     def _run(self):
-        pyjob.cexec(self.cmd)
+        p = subprocess.Popen(self.cmd, shell=True)
+        p.communicate()
 
     def _parse_output(self):
         with open(self.expected_output, 'r') as fhandle:
