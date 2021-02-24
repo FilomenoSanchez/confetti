@@ -10,3 +10,10 @@ def Sweep(*args, **kwargs):
     from confetti.processing.sweep import Sweep
 
     return Sweep(*args, **kwargs)
+
+
+def Cluster(*args, **kwargs):
+    """:py:obj:`~confetti.processing.cluster.Cluster` instance"""
+    from confetti.processing.cluster import Cluster
+
+    return Cluster(*args, **kwargs)

@@ -5,13 +5,13 @@ import confetti.wrappers
 
 class Cluster(object):
 
-    def __init__(self, id, workdir, sweeps_dir, clustering_threshold=5000, nprocs=1, dials_exe='dials'):
+    def __init__(self, id, workdir, sweeps_dir, clustering_threshold=5000, nprocs=1):
         self.id = id
         self.workdir = os.path.join(workdir, 'cluster_{}'.format(id))
         self.error = False
         self.nprocs = nprocs
         self.clustering_threshold = clustering_threshold
-        self.dials_exe = dials_exe
+        self.dials_exe = 'dials'
         self.logger = logging.getLogger(__name__)
         self.sweeps_dir = sweeps_dir
         self.experiments_identifiers = None

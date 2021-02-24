@@ -1,5 +1,5 @@
 import os
-import pyjob
+import subprocess
 import json
 from confetti.wrappers.wrapper import Wrapper
 
@@ -26,14 +26,15 @@ class DialsCosym(Wrapper):
     @property
     def cmd(self):
         return "{dials_exe}.cosym {input_fnames} unit_cell_clustering.threshold={clustering_threshold}" \
-               " nproc={nprocs}".format(**self.__dict__).split()
+               " nproc={nprocs}".format(**self.__dict__)
 
     @property
     def logfile(self):
         return os.path.join(self.workdir, 'dials.cosym.log')
 
     def _run(self):
-        pyjob.cexec(self.cmd)
+        p = subprocess.Popen(self.cmd, shell=True)
+        p.communicate()
 
     def _parse_output(self):
         with open(self.logfile, 'r') as fhandle:
