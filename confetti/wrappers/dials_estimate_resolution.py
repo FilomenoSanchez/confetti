@@ -21,7 +21,7 @@ class DialsEstimateResolution(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.estimate_resolution {input_fnames}".format(**self.__dict__).split()
+        return "{dials_exe}.estimate_resolution {input_fnames}".format(**self.__dict__)
 
     def _run(self):
         p = subprocess.Popen(self.cmd, shell=True)
