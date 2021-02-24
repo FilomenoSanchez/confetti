@@ -2,7 +2,6 @@ import os
 import logging
 import pickle
 import pyjob
-import string
 from cached_property import cached_property
 from confetti.processing import Cluster
 from confetti.io import Experiments
@@ -73,23 +72,22 @@ EOF""".format(**self.__dict__)
         self.make_workdir()
         os.chdir(self.workdir)
 
-        idx = 0
+        idx = 1
         solved = False
 
         while not solved:
-            cluster_id = string.ascii_letters[idx]
 
-            cluster = Cluster(cluster_id, self.workdir, self.sweeps_dir, self.clustering_threshold, self.nprocs)
+            cluster = Cluster(idx, self.workdir, self.sweeps_dir, self.clustering_threshold, self.nprocs)
             cluster.exclude_sweeps = self.exclude_sweeps
             cluster.dials_exe = self.dials_exe
-            self.logger.info('Processing Cluster_{}'.format(cluster_id))
+            self.logger.info('Processing Cluster_{}'.format(idx))
             cluster.process()
             self.clusters.append(cluster)
             self.exclude_sweeps += [self.sweep_dict[sweep] for sweep in cluster.experiments_identifiers]
 
-            if cluster.nclusters <= 1:
-                self.logger.info('Cluster_{} found {} clusters. Exiting now...'.format(cluster_id, cluster.nclusters))
+            if cluster.nclusters <= 1 or len(cluster.experiments_identifiers) == 0:
+                self.logger.info('Cluster_{} found {} clusters. Exiting now...'.format(idx, cluster.nclusters))
                 solved = True
             else:
-                self.logger.info('Cluster_{} found {} clusters. New iteration...'.format(cluster_id, cluster.nclusters))
+                self.logger.info('Cluster_{} found {} clusters. New iteration...'.format(idx, cluster.nclusters))
                 idx += 1
