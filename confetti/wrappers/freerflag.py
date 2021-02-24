@@ -8,6 +8,7 @@ class FreeRFlag(Wrapper):
     def __init__(self, workdir, hklin, hklout):
         self.hklin = os.path.join(workdir, hklin)
         self.hklout = os.path.join(workdir, hklout)
+        self.freerflag_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'freerflag')
         super(FreeRFlag, self).__init__(workdir=workdir)
 
     @property
@@ -20,7 +21,7 @@ class FreeRFlag(Wrapper):
 
     @property
     def cmd(self):
-        return "freerflag hklin {hklin} hklout {hklout}".format(**self.__dict__).split()
+        return "{freerflag_exe} hklin {hklin} hklout {hklout}".format(**self.__dict__).split()
 
     def _run(self):
         pyjob.cexec(self.cmd, stdin=self.keywords)

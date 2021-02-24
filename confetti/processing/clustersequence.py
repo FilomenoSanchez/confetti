@@ -41,7 +41,8 @@ EOF""".format(**self.__dict__)
 
     @property
     def script(self):
-        script = pyjob.Script(directory=self.workdir, prefix='cluster_{}'.format(self.id), stem='', suffix='.sh')
+        script = pyjob.Script(directory=self.workdir, prefix='cluster_sequence_{}'.format(self.id),
+                              stem='', suffix='.sh')
         script.append(self.python_script)
         return script
 
