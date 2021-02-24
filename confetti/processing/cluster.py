@@ -40,6 +40,7 @@ class Cluster(object):
             self.error = True
             return
         self.experiments_identifiers = dials_cosym.cluster_experiment_identifiers
+        self.nlusters = dials_cosym.nclusters
 
         dials_resolution = confetti.wrappers.DialsEstimateResolution(self.workdir, 'symmetrized.*', self.dials_exe)
         dials_resolution.run()
