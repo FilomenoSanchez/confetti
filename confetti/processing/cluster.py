@@ -41,7 +41,7 @@ class Cluster(object):
                 expt_list.append(experiments_fname)
                 refl_list.append(reflections_fname)
 
-        return expt_list + refl_list
+        return ' '.join(expt_list + refl_list)
 
     def make_workdir(self):
         if not os.path.isdir(self.workdir):
