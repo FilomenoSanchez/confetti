@@ -11,7 +11,7 @@ class DialsCosym(Wrapper):
         self.input_fnames = input_fnames
         self.clustering_threshold = clustering_threshold
         self.nprocs = nprocs
-        self.nclusters = None
+        self.nclusters = 0
         self.cluster_experiment_identifiers = []
         super(DialsCosym, self).__init__(workdir=workdir)
 
@@ -39,8 +39,8 @@ class DialsCosym(Wrapper):
     def _parse_output(self):
         with open(self.logfile, 'r') as fhandle:
             for line in fhandle:
-                if 'clusters:' in line and 'Number of clusters:' not in line:
-                    self.nclusters = int(line.rstrip().lstrip().split()[0])
+                if 'cluster_' in line:
+                    self.nclusters += 1
                 elif 'Selecting subset of ' in line and ' datasets for cosym analysis:' in line:
                     experiments = line.split('analysis: ')[-1].lstrip().rstrip()
                     self.cluster_experiment_identifiers = json.loads(experiments.replace("'", '"'))

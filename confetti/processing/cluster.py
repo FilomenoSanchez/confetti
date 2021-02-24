@@ -15,6 +15,7 @@ class Cluster(object):
         self.logger = logging.getLogger(__name__)
         self.sweeps_dir = sweeps_dir
         self.experiments_identifiers = None
+        self.nclusters = None
 
     @property
     def hklout(self):
@@ -40,7 +41,7 @@ class Cluster(object):
             self.error = True
             return
         self.experiments_identifiers = dials_cosym.cluster_experiment_identifiers
-        self.nlusters = dials_cosym.nclusters
+        self.nclusters = dials_cosym.nclusters
 
         dials_resolution = confetti.wrappers.DialsEstimateResolution(self.workdir, 'symmetrized.*', self.dials_exe)
         dials_resolution.run()
