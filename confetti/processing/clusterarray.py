@@ -108,7 +108,7 @@ class ClusterArray(object):
         clusters = []
 
         for cluster_sequence in self.cluster_sequences:
-            for cluster in self.cluster_sequences:
+            for cluster in cluster_sequence:
                 sweeps = [cluster_sequence.sweep_dict[identifier] for identifier in cluster.experiments_identifiers]
                 clusters.append((cluster_sequence.id, cluster.id, cluster.clustering_threshold, cluster.nclusters,
                                  cluster.workdir, sorted(cluster.experiments_identifiers), sorted(sweeps)))
