@@ -29,6 +29,8 @@ class ClusterSequence(object):
         with open(pickle_fname, 'rb') as fhandle:
             return pickle.load(fhandle)
 
+    # ------------------ General properties ------------------
+
     @property
     def python_script(self):
         return """{dials_exe}.python << EOF

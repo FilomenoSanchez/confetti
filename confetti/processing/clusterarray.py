@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+import pickle
 from pyjob import TaskFactory
 import logging
 from confetti.processing import ClusterSequence
@@ -9,7 +11,8 @@ class ClusterArray(object):
     def __init__(self, workdir, sweeps_dir, cluster_thresholds, platform="sge", queue_name=None, queue_environment=None,
                  max_concurrent_nprocs=1, cleanup=False):
         self.sweeps_dir = sweeps_dir
-        self.workdir = workdir
+        self.workdir = os.path.join(workdir, 'clusters')
+        self.pickle_fname = os.path.join(self.workdir, 'clusterarray.pckl')
         self.dials_exe = 'dials'
         self.scripts = []
         self.cluster_sequences = []
@@ -20,7 +23,17 @@ class ClusterArray(object):
         self.shell_interpreter = "/bin/bash"
         self.cleanup = cleanup
         self.cluster_thresholds = cluster_thresholds
+        self.cluster_table = None
         self.logger = logging.getLogger(__name__)
+
+    # ------------------ Class methods ------------------
+
+    @classmethod
+    def from_pickle(cls, pickle_fname):
+        with open(pickle_fname, 'rb') as fhandle:
+            return pickle.load(fhandle)
+
+    # ------------------ General properties ------------------
 
     @property
     def dials_exe(self):
@@ -52,12 +65,22 @@ class ClusterArray(object):
 
         return info
 
+    # ------------------ General methods ------------------
+
+    def dump_pickle(self):
+        self.make_workdir()
+        with open(self.pickle_fname, 'wb') as fhandle:
+            pickle.dump(self, fhandle)
+
+    def make_workdir(self):
+        if not os.path.isdir(self.workdir):
+            os.mkdir(self.workdir)
+
     def process_clusters(self):
-        workdir = os.path.join(self.workdir, 'clusters')
-        os.mkdir(workdir)
 
         for idx, cluster_threshold in enumerate(self.cluster_thresholds, 1):
-            cluster_sequence = ClusterSequence(idx, workdir, self.sweeps_dir, clustering_threshold=cluster_threshold)
+            cluster_sequence = ClusterSequence(idx, self.workdir,
+                                               self.sweeps_dir, clustering_threshold=cluster_threshold)
             cluster_sequence.dials_exe = self.dials_exe
             cluster_sequence.dump_pickle()
 
@@ -71,3 +94,23 @@ class ClusterArray(object):
         with TaskFactory(self.platform, self.scripts, **self._other_task_info) as task:
             task.name = 'cluster-array'
             task.run()
+
+    def reload_cluster_sequences(self):
+        new_clst_seq = []
+        for cluster_sequence in self.cluster_sequences:
+            new_clst_seq.append(ClusterSequence('dummy', 'dummy', 'dummy').from_pickle(cluster_sequence.pickle_fname))
+        self.cluster_sequences = new_clst_seq
+
+    def recover_clusters(self):
+        self.reload_cluster_sequences()
+        clusters = []
+
+        for cluster_sequence in self.cluster_sequences:
+            for cluster in self.cluster_sequences:
+                sweeps = [cluster_sequence.sweep_dict[identifier] for identifier in cluster.experiments_identifiers]
+                clusters.append((cluster_sequence.id, cluster.id, cluster.clustering_threshold, cluster.nclusters,
+                                 cluster.workdir, sorted(cluster.experiments_identifiers), sorted(sweeps)))
+
+        self.cluster_table = pd.DataFrame(clusters)
+        self.cluster_table.columns = ['CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
+                                      'CLST_WORKDIR', 'EXPT_IDS', 'SWEEPS']
