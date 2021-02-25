@@ -80,3 +80,9 @@ def FreeRFlag(*args, **kwargs):
     from confetti.wrappers.freerflag import FreeRFlag
 
     return FreeRFlag(*args, **kwargs)
+
+
+def touch(fname, content='', mode='w'):
+    with open(fname, mode) as fhandle:
+        fhandle.write(content)
+    fhandle.close()
