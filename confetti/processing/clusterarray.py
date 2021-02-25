@@ -103,7 +103,7 @@ class ClusterArray(object):
             new_clst_seq.append(ClusterSequence('dummy', 'dummy', 'dummy').from_pickle(cluster_sequence.pickle_fname))
         self.cluster_sequences = new_clst_seq
 
-    def recover_clusters(self):
+    def create_cluster_table(self):
         self.reload_cluster_sequences()
         clusters = []
 
@@ -111,7 +111,8 @@ class ClusterArray(object):
             for cluster in cluster_sequence.clusters:
                 sweeps = [cluster_sequence.sweep_dict[identifier] for identifier in cluster.experiments_identifiers]
                 clusters.append((cluster_sequence.id, cluster.id, cluster.clustering_threshold, cluster.nclusters,
-                                 cluster.workdir, sorted(cluster.experiments_identifiers), sorted(sweeps)))
+                                 cluster.workdir, tuple(sorted(cluster.experiments_identifiers)),
+                                 tuple(sorted(sweeps))))
 
         self.cluster_table = pd.DataFrame(clusters)
         self.cluster_table.columns = ['CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
