@@ -78,6 +78,8 @@ class ClusterArray(object):
 
     def process_clusters(self):
 
+        self.make_workdir()
+
         for idx, cluster_threshold in enumerate(self.cluster_thresholds, 1):
             cluster_sequence = ClusterSequence(idx, self.workdir,
                                                self.sweeps_dir, clustering_threshold=cluster_threshold)
