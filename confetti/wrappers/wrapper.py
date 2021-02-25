@@ -64,5 +64,5 @@ class Wrapper(ABC):
         self.make_workdir()
         self._run()
         self.check_output()
-        if os.path.isfile(self.logfile):
+        if self.logfile is not None and os.path.isfile(self.logfile):
             self._parse_logfile()
