@@ -8,11 +8,11 @@ from confetti.processing import Sweep
 class SweepArray(object):
 
     def __init__(self, experiments_fname, workdir, platform="sge", queue_name=None, queue_environment=None,
-                 max_concurrent_nprocs=1, cleanup=False):
+                 max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.experiments_fname = experiments_fname
         self.workdir = workdir
         self.imported_expt = Experiments(experiments_fname)
-        self.dials_exe = 'dials'
+        self.dials_exe = dials_exe
         self.scripts = []
         self.sweeps = []
         self.queue_name = queue_name

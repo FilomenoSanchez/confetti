@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 import pickle
 from pyjob import TaskFactory
 import logging
@@ -9,11 +8,11 @@ from confetti.processing import ClusterSequence
 class ClusterArray(object):
 
     def __init__(self, workdir, sweeps_dir, cluster_thresholds, platform="sge", queue_name=None, queue_environment=None,
-                 max_concurrent_nprocs=1, cleanup=False):
+                 max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.sweeps_dir = sweeps_dir
         self.workdir = os.path.join(workdir, 'clusters')
         self.pickle_fname = os.path.join(self.workdir, 'clusterarray.pckl')
-        self.dials_exe = 'dials'
+        self.dials_exe = dials_exe
         self.scripts = []
         self.cluster_sequences = []
         self.queue_name = queue_name
@@ -23,7 +22,6 @@ class ClusterArray(object):
         self.shell_interpreter = "/bin/bash"
         self.cleanup = cleanup
         self.cluster_thresholds = cluster_thresholds
-        self.cluster_table = None
         self.logger = logging.getLogger(__name__)
 
     # ------------------ Class methods ------------------
@@ -102,18 +100,3 @@ class ClusterArray(object):
         for cluster_sequence in self.cluster_sequences:
             new_clst_seq.append(ClusterSequence('dummy', 'dummy', 'dummy').from_pickle(cluster_sequence.pickle_fname))
         self.cluster_sequences = new_clst_seq
-
-    def create_cluster_table(self):
-        self.reload_cluster_sequences()
-        clusters = []
-
-        for cluster_sequence in self.cluster_sequences:
-            for cluster in cluster_sequence.clusters:
-                sweeps = [cluster_sequence.sweep_dict[identifier] for identifier in cluster.experiments_identifiers]
-                clusters.append((cluster_sequence.id, cluster.id, cluster.clustering_threshold, cluster.nclusters,
-                                 cluster.workdir, tuple(sorted(cluster.experiments_identifiers)),
-                                 tuple(sorted(sweeps))))
-
-        self.cluster_table = pd.DataFrame(clusters)
-        self.cluster_table.columns = ['CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
-                                      'CLST_WORKDIR', 'EXPT_IDS', 'SWEEPS']

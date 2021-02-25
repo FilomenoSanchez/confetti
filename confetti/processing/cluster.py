@@ -25,6 +25,11 @@ class Cluster(object):
     def hklout(self):
         return os.path.join(self.workdir, 'merged_FREE.mtz')
 
+    @property
+    def summary(self):
+        return (self.id, self.clustering_threshold, self.nclusters,
+                self.workdir, tuple(sorted(self.experiments_identifiers)))
+
     @cached_property
     def input_fnames(self):
 
