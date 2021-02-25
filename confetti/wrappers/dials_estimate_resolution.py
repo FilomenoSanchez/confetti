@@ -16,8 +16,12 @@ class DialsEstimateResolution(Wrapper):
         return None
 
     @property
-    def expected_output(self):
+    def logfile(self):
         return os.path.join(self.workdir, 'dials.estimate_resolution.log')
+
+    @property
+    def expected_output(self):
+        return self.logfile
 
     @property
     def cmd(self):
@@ -27,8 +31,8 @@ class DialsEstimateResolution(Wrapper):
         p = subprocess.Popen(self.cmd, shell=True)
         p.communicate()
 
-    def _parse_output(self):
-        with open(self.expected_output, 'r') as fhandle:
+    def _parse_logfile(self):
+        with open(self.logfile, 'r') as fhandle:
             for line in fhandle:
                 if 'Resolution cc_half:' in line:
                     self.resolution = line.rstrip().split()[-1]

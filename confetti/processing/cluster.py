@@ -62,6 +62,10 @@ class Cluster(object):
             self.logger.error('Cluster_{} failed to run cosym'.format(self.id))
             self.error = True
             return
+        elif dials_cosym.nclusters <= 1:
+            self.logger.warning('Cluster_{} found no clusters!'.format(self.id))
+            self.error = True
+            return
 
         dials_resolution = confetti.wrappers.DialsEstimateResolution(self.workdir, 'symmetrized.*', self.dials_exe)
         dials_resolution.run()

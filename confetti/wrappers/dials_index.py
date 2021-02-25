@@ -20,6 +20,10 @@ class DialsIndex(Wrapper):
         return os.path.join(self.workdir, 'indexed.expt')
 
     @property
+    def logfile(self):
+        return os.path.join(self.workdir, 'dials.index.log')
+
+    @property
     def cmd(self):
         return "{dials_exe}.index {experiments_fname} {reflections_fname}".format(**self.__dict__).split()
 
@@ -27,5 +31,5 @@ class DialsIndex(Wrapper):
         p = subprocess.Popen(self.cmd)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass

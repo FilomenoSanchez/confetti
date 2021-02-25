@@ -20,11 +20,15 @@ class FreeRFlag(Wrapper):
         return self.hklout
 
     @property
+    def logfile(self):
+        return None
+
+    @property
     def cmd(self):
         return "{freerflag_exe} hklin {hklin} hklout {hklout}".format(**self.__dict__).split()
 
     def _run(self):
         pyjob.cexec(self.cmd, stdin=self.keywords)
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass

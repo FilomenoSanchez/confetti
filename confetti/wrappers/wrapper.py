@@ -22,8 +22,8 @@ class Wrapper(ABC):
         pass
 
     @abc.abstractmethod
-    def _parse_output(self):
-        """Abstract method to parse the output of the wrapper"""
+    def _parse_logfile(self):
+        """Abstract method to parse the log file of the wrapper"""
         pass
 
     @property
@@ -44,6 +44,12 @@ class Wrapper(ABC):
         """Abstract property to store the expected output file name"""
         pass
 
+    @property
+    @abc.abstractmethod
+    def logfile(self):
+        """Abstract property to store the log file name"""
+        pass
+
     # ------------------ Some general methods ------------------
 
     def make_workdir(self):
@@ -58,5 +64,5 @@ class Wrapper(ABC):
         self.make_workdir()
         self._run()
         self.check_output()
-        if not self.error:
-            self._parse_output()
+        if os.path.isfile(self.logfile):
+            self._parse_logfile()

@@ -36,7 +36,7 @@ class DialsCosym(Wrapper):
         p = subprocess.Popen(self.cmd, shell=True)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         with open(self.logfile, 'r') as fhandle:
             for line in fhandle:
                 if 'cluster_' in line:

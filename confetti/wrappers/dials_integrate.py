@@ -20,6 +20,10 @@ class DialsIntegrate(Wrapper):
         return os.path.join(self.workdir, 'integrated.expt')
 
     @property
+    def logfile(self):
+        return os.path.join(self.workdir, 'dials.integrate.log')
+
+    @property
     def cmd(self):
         return "{dials_exe}.integrate {experiments_fname} {reflections_fname}".format(**self.__dict__).split()
 
@@ -27,5 +31,5 @@ class DialsIntegrate(Wrapper):
         p = subprocess.Popen(self.cmd)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass

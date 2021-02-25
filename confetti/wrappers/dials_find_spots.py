@@ -15,6 +15,10 @@ class DialsFindSpots(Wrapper):
         return None
 
     @property
+    def logfile(self):
+        return os.path.join(self.workdir, 'dials.find_spots.log')
+
+    @property
     def expected_output(self):
         return os.path.join(self.workdir, 'strong.refl')
 
@@ -26,5 +30,5 @@ class DialsFindSpots(Wrapper):
         p = subprocess.Popen(self.cmd)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass

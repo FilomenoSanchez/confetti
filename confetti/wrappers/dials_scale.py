@@ -24,6 +24,10 @@ class DialsScale(Wrapper):
         return None
 
     @property
+    def logfile(self):
+        return os.path.join(self.workdir, 'dials.scale.log')
+
+    @property
     def expected_output(self):
         return os.path.join(self.workdir, 'scaled.expt')
 
@@ -38,5 +42,5 @@ class DialsScale(Wrapper):
         p = subprocess.Popen(self.cmd)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass

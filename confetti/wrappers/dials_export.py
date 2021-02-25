@@ -23,6 +23,10 @@ class DialsExport(Wrapper):
         return self.mtz_hklout
 
     @property
+    def logfile(self):
+        return os.path.join(self.workdir, 'dials.export.log')
+
+    @property
     def cmd(self):
         return "{dials_exe}.export {experiments_fname} {reflections_fname} intensity={intensity} " \
                "mtz.hklout={mtz_hklout}".format(**self.__dict__).split()
@@ -31,5 +35,5 @@ class DialsExport(Wrapper):
         p = subprocess.Popen(self.cmd)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass

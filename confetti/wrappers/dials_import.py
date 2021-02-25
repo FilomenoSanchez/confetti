@@ -19,6 +19,10 @@ class DialsImport(Wrapper):
         return os.path.join(self.workdir, 'imported.expt')
 
     @property
+    def logfile(self):
+        return os.path.join(self.workdir, 'dials.import.log')
+
+    @property
     def cmd(self):
         return "{dials_exe}.import {input_fnames}".format(**self.__dict__).split()
 
@@ -26,5 +30,5 @@ class DialsImport(Wrapper):
         p = subprocess.Popen(self.cmd)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass

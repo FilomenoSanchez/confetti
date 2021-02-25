@@ -22,9 +22,13 @@ class DialsMerge(Wrapper):
     def cmd(self):
         return "{dials_exe}.merge {input_fnames}".format(**self.__dict__)
 
+    @property
+    def logfile(self):
+        return os.path.join(self.workdir, 'dials.merge.log')
+
     def _run(self):
         p = subprocess.Popen(self.cmd, shell=True)
         p.communicate()
 
-    def _parse_output(self):
+    def _parse_logfile(self):
         pass
