@@ -1,7 +1,5 @@
+def CompletenessTable(*args, **kwargs):
+    """:py:obj:`~confetti.completeness.completenesstable.CompletenessTable` instance"""
+    from confetti.completeness.completenesstable import CompletenessTable
 
-def Dataset(*args, **kwargs):
-    """:py:obj:`~confetti.completeness.dataset.Dataset` instance"""
-    from confetti.completeness.dataset import Dataset
-
-    return Dataset(*args, **kwargs)
-
+    return CompletenessTable(*args, **kwargs)

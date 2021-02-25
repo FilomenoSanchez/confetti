@@ -8,7 +8,7 @@ from confetti.io.reflections_parser import Reflections
 from confetti.io.experiments_parser import Experiments
 
 
-class Dataset(object):
+class CompletenessTable(object):
 
     def __init__(self):
         self.is_p1 = False
