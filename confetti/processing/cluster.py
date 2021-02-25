@@ -62,7 +62,7 @@ class Cluster(object):
             self.logger.error('Cluster_{} failed to run cosym'.format(self.id))
             self.error = True
             return
-        elif dials_cosym.nclusters < 1 or dials_cosym.cluster_experiment_identifiers <= 1:
+        elif dials_cosym.nclusters < 1 or len(dials_cosym.cluster_experiment_identifiers) <= 1:
             self.logger.warning('Cluster_{} found no clusters!'.format(self.id))
             self.error = True
             return
