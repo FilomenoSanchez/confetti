@@ -34,9 +34,12 @@ class Refmac(Wrapper):
 
     def _run(self):
         self.make_workdir()
+        original_dir = os.getcwd()
+        os.chdir(self.workdir)
         p = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, shell=True)
         self.logcontents = p.communicate()[0]
         touch(self.logfile, self.logcontents)
+        os.chdir(original_dir)
 
     def _parse_logfile(self):
         pass
