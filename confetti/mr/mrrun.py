@@ -1,5 +1,6 @@
 import os
 import pickle
+import pyjob
 import logging
 from confetti.mr import MtzParser
 from confetti.wrappers import Phaser, Refmac, Buccaneer
@@ -10,7 +11,7 @@ class MrRun(object):
     def __init__(self, id, workdir, mtz_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords):
         self.id = id
         self.mtz_fname = mtz_fname
-        self.workdir = os.path.join(workdir, 'mr_{}'.format(id))
+        self.workdir = os.path.join(workdir, 'mrrun_{}'.format(id))
         self.pickle_fname = os.path.join(self.workdir, 'mrrun.pckl')
         self.phaser = None
         self.refmac_stdin = refmac_stdin
@@ -30,6 +31,23 @@ class MrRun(object):
     def from_pickle(cls, pickle_fname):
         with open(pickle_fname, 'rb') as fhandle:
             return pickle.load(fhandle)
+
+    # ------------------ General properties ------------------
+
+    @property
+    def python_script(self):
+        return """{dials_exe}.python << EOF
+from confetti.mr import MrRun
+mr_run = MrRun('dummy', 'dummy', 'dummy', 'dummy', 'dummy', 'dummy', 'dummy').from_pickle('{pickle_fname}')
+mr_run.run()
+mr_run.dump_pickle()
+EOF""".format(**self.__dict__)
+
+    @property
+    def script(self):
+        script = pyjob.Script(directory=self.workdir, prefix='mrrun_{}'.format(self.id), stem='', suffix='.sh')
+        script.append(self.python_script)
+        return script
 
     # ------------------ General methods ------------------
 
