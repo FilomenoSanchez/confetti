@@ -15,7 +15,7 @@ class Buccaneer(Wrapper):
         self.logcontents = None
         self.buccaneer_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'buccaneer_pipeline')
         self.cad_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'cad')
-        self._cad_stdin = 'LABIN  FILE 1 E1=F E2=SIGF E3=FreeR_flag\nLABIN  FILE 2 E1=PHIC_ALL_LS E2=FOM'
+        self._cad_stdin = '\nLABIN  FILE 1 E1=F E2=SIGF E3=FreeR_flag\nLABIN  FILE 2 E1=PHIC_ALL_LS E2=FOM'
         super(Buccaneer, self).__init__(workdir=os.path.join(workdir, 'buccaneer'))
 
     # ------------------ General properties ------------------
