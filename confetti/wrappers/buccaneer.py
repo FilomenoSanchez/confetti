@@ -34,8 +34,8 @@ class Buccaneer(Wrapper):
 
     @property
     def keywords(self):
-        return self._keywords.format(**{'TITLE': randint(1, 10000), 'HKLIN': 'buccaneer_input.mtz',
-                                        'XYZIN': self.refmac_xyzout})
+        return self._keywords.format(**{'TITLE': randint(1, 10000), 'XYZIN': self.refmac_xyzout,
+                                        'HKLIN': os.path.join(self.workdir, 'cad', 'buccaneer_input.mtz')})
 
     @property
     def expected_output(self):

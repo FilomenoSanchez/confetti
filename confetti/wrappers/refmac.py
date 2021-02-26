@@ -7,9 +7,9 @@ from confetti.wrappers.wrapper import Wrapper
 class Refmac(Wrapper):
     def __init__(self, workdir, hklin, hklout, xyzin, xyzout, stdin):
         self.hklin = hklin
-        self.hklout = hklout
+        self.hklout = os.path.join(workdir, 'refmac', hklout)
         self.xyzin = xyzin
-        self.xyzout = xyzout
+        self.xyzout = os.path.join(workdir, 'refmac', xyzout)
         self.stdin = stdin
         self.logcontents = None
         self.refmac_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'refmac5')
@@ -21,7 +21,7 @@ class Refmac(Wrapper):
 
     @property
     def expected_output(self):
-        return os.path.join(self.workdir, self.xyzout)
+        return self.xyzout
 
     @property
     def logfile(self):
@@ -34,12 +34,9 @@ class Refmac(Wrapper):
 
     def _run(self):
         self.make_workdir()
-        original_dir = os.getcwd()
-        os.chdir(self.workdir)
         p = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, shell=True)
         self.logcontents = p.communicate()[0]
         touch(self.logfile, self.logcontents)
-        os.chdir(original_dir)
 
     def _parse_logfile(self):
         pass

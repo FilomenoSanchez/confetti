@@ -8,7 +8,7 @@ class Cad(Wrapper):
     def __init__(self, workdir, hklin1, hklin2, hklout, stdin):
         self.hklin1 = hklin1
         self.hklin2 = hklin2
-        self.hklout = hklout
+        self.hklout = os.path.join(workdir, 'cad', hklout)
         self.stdin = stdin
         self.logcontents = None
         self.cad_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'cad')
@@ -32,12 +32,9 @@ class Cad(Wrapper):
 
     def _run(self):
         self.make_workdir()
-        original_dir = os.getcwd()
-        os.chdir(self.workdir)
         p = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, shell=True)
         self.logcontents = p.communicate()[0]
         touch(self.logfile, self.logcontents)
-        os.chdir(original_dir)
 
     def _parse_logfile(self):
         pass

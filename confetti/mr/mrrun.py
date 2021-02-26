@@ -57,8 +57,8 @@ class MrRun(object):
         if self.refmac.error:
             self.logger.error('MR-Run {} failed to execute refmac'.format(self.id))
             return
-
-        self.buccaneer = Buccaneer(self.workdir, self.buccaneer_keywords)
+        self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout, self.refmac.xyzout,
+                                   self.buccaneer_keywords)
         self.buccaneer.run()
         if self.buccaneer.error:
             self.logger.error('MR-Run {} failed to execute buccaneer'.format(self.id))
