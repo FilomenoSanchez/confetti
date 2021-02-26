@@ -34,8 +34,8 @@ class Buccaneer(Wrapper):
 
     @property
     def keywords(self):
-        return self._keywords.format(**{'title': randint(1, 10000), 'hklin': 'buccaneer_input.mtz',
-                                        'xyzin': self.refmac_xyzout})
+        return self._keywords.format(**{'TITLE': randint(1, 10000), 'HKLIN': 'buccaneer_input.mtz',
+                                        'XYZIN': self.refmac_xyzout})
 
     @property
     def expected_output(self):
@@ -43,11 +43,11 @@ class Buccaneer(Wrapper):
 
     @property
     def logfile(self):
-        return os.path.join(self.workdir, 'refmac_out.log')
+        return os.path.join(self.workdir, 'buccaneer.log')
 
     @property
     def cmd(self):
-        return "{buccaneer_exe} {keywords}".format(**self.__dict__).split()
+        return "{buccaneer_exe} {keywords}".format(**self.__dict__)
 
     # ------------------ General methods ------------------
 
@@ -59,7 +59,7 @@ class Buccaneer(Wrapper):
             self.logger.error('Cad run failed! {}'.format(cad.cmd))
             return
 
-        p = subprocess.Popen(self.cmd, stdout=subprocess.PIPE)
+        p = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, shell=True)
         self.logcontents = p.communicate()[0]
         touch(self.logfile, self.logcontents)
 

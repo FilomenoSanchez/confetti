@@ -21,7 +21,7 @@ class MrRun(object):
         self.mtz_parser = MtzParser(self.mtz_fname)
         self.mtz_parser.parse()
         self.ncopies, self.solvent = self.estimate_contents(self.mtz_parser.reflection_file.cell.volume_per_image(), mw)
-        self.phaser_stdin = phaser_stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw})
+        self.phaser_stdin = phaser_stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw, 'HKLIN': self.mtz_fname})
         self.logger = logging.getLogger(__name__)
 
         # ------------------ Class methods ------------------
