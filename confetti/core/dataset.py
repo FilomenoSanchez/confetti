@@ -66,7 +66,9 @@ class Dataset(object):
 
         for cluster_sequence in self.clusterarray.cluster_sequences:
             for cluster in cluster_sequence.clusters:
-                sweeps = [cluster_sequence.sweep_dict[identifier] for identifier in cluster.experiments_identifiers]
+                sweeps = []
+                for identifier in cluster.experiments_identifiers:
+                    sweeps.append(cluster_sequence.sweep_dict[identifier])
                 clusters.append((self.id, cluster_sequence.id, *cluster.summary, tuple(sorted(sweeps))))
 
         self.cluster_table = pd.DataFrame(clusters)
