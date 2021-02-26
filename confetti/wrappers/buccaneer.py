@@ -6,10 +6,11 @@ from confetti.wrappers.wrapper import Wrapper
 
 
 class Buccaneer(Wrapper):
-    def __init__(self, workdir, mtz_fname, refmac_hklout, refmac_xyzout, keywords):
+    def __init__(self, workdir, mtz_fname, refmac_hklout, refmac_xyzout, keywords, xyzout='buccaneer_out.pdb'):
         self.mtz_fname = mtz_fname
         self.refmac_hklout = refmac_hklout
         self.refmac_xyzout = refmac_xyzout
+        self.xyzout = os.path.join(workdir, 'buccaneer', xyzout)
         self._keywords = keywords
         self.logcontents = None
         self.buccaneer_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'buccaneer_pipeline')
@@ -34,7 +35,7 @@ class Buccaneer(Wrapper):
 
     @property
     def keywords(self):
-        return self._keywords.format(**{'TITLE': randint(1, 10000), 'XYZIN': self.refmac_xyzout,
+        return self._keywords.format(**{'TITLE': randint(1, 10000), 'XYZIN': self.refmac_xyzout, 'XYZOUT': self.xyzout,
                                         'HKLIN': os.path.join(self.workdir, 'cad', 'buccaneer_input.mtz')})
 
     @property
