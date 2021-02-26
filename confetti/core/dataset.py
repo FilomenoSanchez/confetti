@@ -9,7 +9,7 @@ from confetti.mr import MrArray
 class Dataset(object):
 
     def __init__(self, id, workdir, platform="sge", queue_name=None, queue_environment=None, max_concurrent_nprocs=1,
-                 cleanup=False):
+                 cleanup=False, dials_exe='dials'):
         self.workdir = os.path.join(workdir, 'dataset_{}'.format(id))
         self.id = id
         self.sweeparray = None
@@ -21,7 +21,7 @@ class Dataset(object):
         self.max_concurrent_nprocs = max_concurrent_nprocs
         self.platform = platform
         self.shell_interpreter = "/bin/bash"
-        self.dials_exe = 'dials'
+        self.dials_exe = dials_exe
         self.cleanup = cleanup
         self.pickle_fname = os.path.join(self.workdir, 'dataset.pckl')
         self.logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class Dataset(object):
 
         self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
                                self.platform, self.queue_name, self.queue_environment, self.max_concurrent_nprocs,
-                               self.cleanup)
+                               self.cleanup, self.dials_exe)
         self.mrarray.run()
         self.mrarray.dump_pickle()
 
