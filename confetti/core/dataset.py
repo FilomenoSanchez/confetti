@@ -82,7 +82,7 @@ class Dataset(object):
         clst_workdirs = self.cluster_table.drop_duplicates('SWEEPS').CLST_WORKDIR.tolist()
 
         for workdir in clst_workdirs:
-            mtz_fname = os.path.join(clst_workdirs, 'merged_FREE.mtz')
+            mtz_fname = os.path.join(workdir, 'merged_FREE.mtz')
             if os.path.isfile(mtz_fname):
                 mtz_list.append(mtz_fname)
 

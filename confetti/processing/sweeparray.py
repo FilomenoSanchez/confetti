@@ -10,7 +10,7 @@ class SweepArray(object):
     def __init__(self, experiments_fname, workdir, platform="sge", queue_name=None, queue_environment=None,
                  max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.experiments_fname = experiments_fname
-        self.workdir = workdir
+        self.workdir = os.path.join(workdir, 'sweeps')
         self.imported_expt = Experiments(experiments_fname)
         self.dials_exe = dials_exe
         self.scripts = []
@@ -53,16 +53,19 @@ class SweepArray(object):
 
         return info
 
+    def make_workdir(self):
+        if not os.path.isdir(self.workdir):
+            os.mkdir(self.workdir)
+
     def process_sweeps(self):
-        workdir = os.path.join(self.workdir, 'sweeps')
-        os.mkdir(workdir)
+        self.make_workdir()
 
         for idx, imageset in enumerate(self.imported_expt.imagesets, 1):
 
             if len(imageset) == 1:
                 continue
 
-            sweep = Sweep(idx, workdir, imageset)
+            sweep = Sweep(idx, self.workdir, imageset)
             sweep.dials_exe = self.dials_exe
             sweep.dump_pickle()
             self.sweeps.append(sweep)
