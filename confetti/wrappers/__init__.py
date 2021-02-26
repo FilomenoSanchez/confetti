@@ -68,6 +68,34 @@ def DialsIndex(*args, **kwargs):
     return DialsIndex(*args, **kwargs)
 
 
+def Refmac(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.refmac.Refmac` instance"""
+    from confetti.wrappers.refmac import Refmac
+
+    return Refmac(*args, **kwargs)
+
+
+def Cad(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.cad.Cad` instance"""
+    from confetti.wrappers.cad import Cad
+
+    return Cad(*args, **kwargs)
+
+
+def Buccaneer(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.buccaneer.Buccaneer` instance"""
+    from confetti.wrappers.buccaneer import Buccaneer
+
+    return Buccaneer(*args, **kwargs)
+
+
+def Phaser(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.phaser.Phaser` instance"""
+    from confetti.wrappers.phaser import Phaser
+
+    return Phaser(*args, **kwargs)
+
+
 def DialsScale(*args, **kwargs):
     """:py:obj:`~confetti.wrappers.dials_scale.DialsScale` instance"""
     from confetti.wrappers.dials_scale import DialsScale
