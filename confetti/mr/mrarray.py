@@ -8,7 +8,7 @@ from confetti.mr import MrRun
 class MrArray(object):
 
     def __init__(self, workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, platform="sge",
-                 queue_name=None, queue_environment=None, max_concurrent_nprocs=1, cleanup=False):
+                 queue_name=None, queue_environment=None, max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.workdir = os.path.join(workdir, 'mr')
         self.pickle_fname = os.path.join(self.workdir, 'mrarray.pckl')
         self.ccp4_bin = os.path.join(os.environ.get('CCP4'), 'bin')
@@ -19,6 +19,7 @@ class MrArray(object):
         self.max_concurrent_nprocs = max_concurrent_nprocs
         self.platform = platform
         self.shell_interpreter = "/bin/bash"
+        self.dials_exe = 'dials'
         self.cleanup = cleanup
         self.mtz_list = mtz_list
         self.mw = mw
@@ -70,7 +71,10 @@ class MrArray(object):
         for idx, mtz_fname in enumerate(self.mtz_list, 1):
             mr_run = MrRun(idx, self.workdir, mtz_fname, self.mw, self.phaser_stdin,
                            self.refmac_stdin, self.buccaneer_keywords)
+            mr_run.dials_exe = self.dials_exe
             mr_run.dump_pickle()
+
+            self.mr_runs.append(mr_run)
             self.scripts.append(mr_run.script())
 
         self.logger.info('Processing mr array')

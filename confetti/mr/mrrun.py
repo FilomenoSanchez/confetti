@@ -23,6 +23,7 @@ class MrRun(object):
         self.solvent = 0
         self.estimate_contents()
         self.phaser_stdin = phaser_stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw, 'HKLIN': self.mtz_fname})
+        self.dials_exe = 'dials'
         self.logger = logging.getLogger(__name__)
 
         # ------------------ Class methods ------------------
