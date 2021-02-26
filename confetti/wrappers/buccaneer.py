@@ -56,6 +56,7 @@ class Buccaneer(Wrapper):
         self.make_workdir()
 
         cad = Cad(self.workdir, self.mtz_fname, self.refmac_hklout, 'buccaneer_input.mtz', self.cad_stdin)
+        cad.run()
         if cad.error:
             self.logger.error('Cad run failed! {}'.format(cad.cmd))
             return
