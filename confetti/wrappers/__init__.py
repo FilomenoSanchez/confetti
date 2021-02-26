@@ -110,7 +110,7 @@ def FreeRFlag(*args, **kwargs):
     return FreeRFlag(*args, **kwargs)
 
 
-def touch(fname, content='', mode='w'):
+def touch(fname, content='', mode='wb'):
     with open(fname, mode) as fhandle:
         fhandle.write(content)
     fhandle.close()

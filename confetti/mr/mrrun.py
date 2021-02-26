@@ -18,9 +18,9 @@ class MrRun(object):
         self.buccaneer = None
         self.buccaneer_keywords = buccaneer_keywords
         self.mw = mw
-        self.mtz_parser = MtzParser(self.mtz_fname)
-        self.mtz_parser.parse()
-        self.ncopies, self.solvent = self.estimate_contents(self.mtz_parser.reflection_file.cell.volume_per_image(), mw)
+        self.ncopies = 0
+        self.solvent = 0
+        self.estimate_contents()
         self.phaser_stdin = phaser_stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw, 'HKLIN': self.mtz_fname})
         self.logger = logging.getLogger(__name__)
 
@@ -43,6 +43,8 @@ class MrRun(object):
             os.mkdir(self.workdir)
 
     def run(self):
+        self.make_workdir()
+
         self.phaser = Phaser(self.workdir, self.phaser_stdin)
         self.phaser.run()
         if self.phaser.error:
@@ -64,12 +66,13 @@ class MrRun(object):
 
     # ------------------ Static methods ------------------
 
-    @staticmethod
-    def estimate_contents(cell_volume, mw):
-
+    def estimate_contents(self):
+        mtz_parser = MtzParser(self.mtz_fname)
+        mtz_parser.parse()
+        cell_volume = mtz_parser.reflection_file.cell.volume_per_image()
         for ncopies in [1, 2, 3, 4, 5]:
 
-            matthews = cell_volume / (mw * ncopies)
+            matthews = cell_volume / (self.mw * ncopies)
             protein_fraction = 1. / (6.02214e23 * 1e-24 * 1.35 * matthews)
             solvent = round((1 - protein_fraction), 1)
 
@@ -78,8 +81,9 @@ class MrRun(object):
 
         if solvent <= 0.4 and ncopies != 1:
             ncopies -= 1
-            matthews = cell_volume / (mw * ncopies)
+            matthews = cell_volume / (self.mw * ncopies)
             protein_fraction = 1. / (6.02214e23 * 1e-24 * 1.35 * matthews)
             solvent = round((1 - protein_fraction), 1)
 
-        return ncopies, solvent
+        self.ncopies = ncopies
+        self.solvent = solvent
