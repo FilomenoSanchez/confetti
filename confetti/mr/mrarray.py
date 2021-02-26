@@ -19,7 +19,7 @@ class MrArray(object):
         self.max_concurrent_nprocs = max_concurrent_nprocs
         self.platform = platform
         self.shell_interpreter = "/bin/bash"
-        self.dials_exe = 'dials'
+        self.dials_exe = dials_exe
         self.cleanup = cleanup
         self.mtz_list = mtz_list
         self.mw = mw
@@ -75,7 +75,7 @@ class MrArray(object):
             mr_run.dump_pickle()
 
             self.mr_runs.append(mr_run)
-            self.scripts.append(mr_run.script())
+            self.scripts.append(mr_run.script)
 
         self.logger.info('Processing mr array')
         with TaskFactory(self.platform, self.scripts, **self._other_task_info) as task:

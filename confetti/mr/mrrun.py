@@ -39,7 +39,7 @@ class MrRun(object):
     def python_script(self):
         return """{dials_exe}.python << EOF
 from confetti.mr import MrRun
-mr_run = MrRun('dummy', 'dummy', 'dummy', 'dummy', 'dummy', 'dummy', 'dummy').from_pickle('{pickle_fname}')
+mr_run = MrRun('dummy', '{workdir}', '{mtz_fname}', {mw}, 'dummy', 'dummy', 'dummy').from_pickle('{pickle_fname}')
 mr_run.run()
 mr_run.dump_pickle()
 EOF""".format(**self.__dict__)
