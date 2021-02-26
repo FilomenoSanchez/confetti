@@ -21,7 +21,7 @@ class Refmac(Wrapper):
 
     @property
     def expected_output(self):
-        return self.xyzout
+        return os.path.join(self.workdir, self.xyzout)
 
     @property
     def logfile(self):

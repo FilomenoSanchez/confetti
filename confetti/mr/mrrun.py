@@ -70,6 +70,7 @@ class MrRun(object):
         mtz_parser = MtzParser(self.mtz_fname)
         mtz_parser.parse()
         cell_volume = mtz_parser.reflection_file.cell.volume_per_image()
+
         for ncopies in [1, 2, 3, 4, 5]:
 
             matthews = cell_volume / (self.mw * ncopies)
