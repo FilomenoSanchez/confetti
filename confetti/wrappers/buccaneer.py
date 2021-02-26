@@ -47,7 +47,7 @@ class Buccaneer(Wrapper):
 
     @property
     def cmd(self):
-        return "{buccaneer_exe} {keywords}".format(**self.__dict__)
+        return "{} {}".format(self.buccaneer_exe, self.keywords)
 
     # ------------------ General methods ------------------
 
