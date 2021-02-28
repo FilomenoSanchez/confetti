@@ -13,12 +13,19 @@ class Buccaneer(Wrapper):
         self.xyzout = os.path.join(workdir, 'buccaneer', xyzout)
         self._keywords = keywords
         self.logcontents = None
+        self.rfactor = "NA"
+        self.rfree = "NA"
+        self.completeness = "NA"
         self.buccaneer_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'buccaneer_pipeline')
         self.cad_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'cad')
         self._cad_stdin = '\nLABIN  FILE 1 E1=F E2=SIGF E3=FreeR_flag\nLABIN  FILE 2 E1=PHIC_ALL_LS E2=FOM'
         super(Buccaneer, self).__init__(workdir=os.path.join(workdir, 'buccaneer'))
 
     # ------------------ General properties ------------------
+
+    @property
+    def summary(self):
+        return self.rfactor, self.rfree, self.completeness
 
     @property
     def cad_stdin(self):
@@ -69,4 +76,18 @@ class Buccaneer(Wrapper):
         os.chdir(original_dir)
 
     def _parse_logfile(self):
-        pass
+        reached_end = False
+        for line in self.logcontents.split("\n"):
+            if "Completeness by residues built:" in line:
+                self.completeness = float(line.rstrip().lstrip().split()[-1].replace('%', ''))
+            elif "Final results" in line:
+                reached_end = True
+            elif reached_end and "R factor" in line:
+                self.rfactor = line.split()[3].rstrip().encode('utf-8')
+            elif reached_end and "R free" in line:
+                self.rfree = line.split()[3].rstrip().encode('utf-8')
+
+        # If there is no rfree or rfactor, there was an error
+        if self.rfactor == "NA" or self.rfree == "NA" or self.completeness == "NA":
+            self.logger.error("Buccaneer did not report all the figures of merit !")
+            self.error = True

@@ -13,7 +13,18 @@ class Refmac(Wrapper):
         self.stdin = stdin
         self.logcontents = None
         self.refmac_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'refmac5')
+        self.rfactor = "NA"
+        self.rfree = "NA"
+        self.rfactor_delta = ("NA", "NA")
+        self.rfree_delta = ("NA", "NA")
+        self.bondlenght_delta = ("NA", "NA")
+        self.bondangle_delta = ("NA", "NA")
+        self.chirvol_delta = ("NA", "NA")
         super(Refmac, self).__init__(workdir=os.path.join(workdir, 'refmac'))
+
+    @property
+    def summary(self):
+        return self.rfactor, self.rfree
 
     @property
     def keywords(self):
@@ -39,4 +50,27 @@ class Refmac(Wrapper):
         touch(self.logfile, self.logcontents)
 
     def _parse_logfile(self):
-        pass
+        reached_end = False
+        for line in self.logcontents.split("\n"):
+            if "Final results" in line:
+                reached_end = True
+            elif reached_end and "R factor" in line:
+                self.rfactor = line.split()[3].rstrip().encode('utf-8')
+                self.rfactor_delta = (line.split()[2].rstrip().encode('utf-8'), self.rfactor)
+            elif reached_end and "R free" in line:
+                self.rfree = line.split()[3].rstrip().encode('utf-8')
+                self.rfree_delta = (line.split()[2].rstrip().encode('utf-8'), self.rfree)
+            elif reached_end and "Rms BondLength" in line:
+                self.bondlenght_delta = (
+                    line.split()[2].rstrip().encode('utf-8'), line.split()[3].rstrip().encode('utf-8'))
+            elif reached_end and "Rms BondAngle" in line:
+                self.bondangle_delta = (
+                    line.split()[2].rstrip().encode('utf-8'), line.split()[3].rstrip().encode('utf-8'))
+            elif reached_end and "Rms ChirVolume" in line:
+                self.chirvol_delta = (
+                    line.split()[2].rstrip().encode('utf-8'), line.split()[3].rstrip().encode('utf-8'))
+
+        # If there is no rfree or rfactor, there was an error
+        if self.rfactor == "NA" and self.rfree == "NA":
+            self.logger.error("Refmac did not report Rfree and Rfactor !")
+            self.error = True
