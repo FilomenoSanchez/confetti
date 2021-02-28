@@ -16,6 +16,7 @@ class Dataset(object):
         self.clusterarray = None
         self.mrarray = None
         self.cluster_table = None
+        self.mr_table = None
         self.queue_name = queue_name
         self.queue_environment = queue_environment
         self.max_concurrent_nprocs = max_concurrent_nprocs
@@ -67,18 +68,28 @@ class Dataset(object):
         self.clusterarray.dump_pickle()
 
     def create_cluster_table(self):
-        clusters = []
+        table = []
 
         for cluster_sequence in self.clusterarray.cluster_sequences:
             for cluster in cluster_sequence.clusters:
                 sweeps = []
                 for identifier in cluster.experiments_identifiers:
                     sweeps.append(cluster_sequence.sweep_dict[identifier])
-                clusters.append((self.id, cluster_sequence.id, *cluster.summary, tuple(sorted(sweeps))))
+                table.append((self.id, cluster_sequence.id, *cluster.summary, tuple(sorted(sweeps))))
 
-        self.cluster_table = pd.DataFrame(clusters)
+        self.cluster_table = pd.DataFrame(table)
         self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
                                       'CLST_WORKDIR', 'CLST_HKLOUT', 'EXPT_IDS', 'SWEEPS']
+
+    def create_mr_table(self):
+        table = []
+
+        for mr_run in self.mrarray.mr_runs:
+            table.append((self.id, mr_run.id, *mr_run.summary, mr_run.mtz_fname))
+
+        self.mr_table = pd.DataFrame(table)
+        self.mr_table.columns = ['DATASET', 'MR_ID', 'LLG', 'TFZ', 'RFZ', 'eLLG', 'RFMC_RFACT', 'RFMC_RFREE',
+                                 'BUCC_RFACT', 'BUCC_RFREE', 'BUCC_COMPLETENESS', 'MR_HKLIN']
 
     def retrieve_unique_mtzs(self):
         mtz_list = []

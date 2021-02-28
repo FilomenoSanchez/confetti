@@ -50,6 +50,10 @@ EOF""".format(**self.__dict__)
         script.append(self.python_script)
         return script
 
+    @property
+    def summary(self):
+        return tuple(*self.phaser.summary, *self.refmac.summary, *self.buccaneer.summary)
+
     # ------------------ General methods ------------------
 
     def dump_pickle(self):
