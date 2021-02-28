@@ -47,16 +47,21 @@ class Dataset(object):
     def process_sweeps(self, experiments_fname, sweeps_slice=None, reset_wavelenght=None):
         self.sweeparray = SweepArray(experiments_fname, self.workdir, self.platform, self.queue_name,
                                      self.queue_environment, self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
+
         if sweeps_slice is not None:
             self.sweeparray.slice_sweeps(sweeps_slice)
         self.sweeparray.process_sweeps()
         if reset_wavelenght is not None:
             self.sweeparray.reset_wavelength(reset_wavelenght)
 
+        self.sweeparray.reload_sweeps()
+        self.sweeparray.dump_pickle()
+
     def process_clusters(self, cluster_thresholds=(100, 200, 300, 500, 1000)):
         self.clusterarray = ClusterArray(self.workdir, self.sweeparray.workdir, cluster_thresholds, self.platform,
                                          self.queue_name, self.queue_environment, self.max_concurrent_nprocs,
                                          self.cleanup, self.dials_exe)
+
         self.clusterarray.process_clusters()
         self.clusterarray.reload_cluster_sequences()
         self.clusterarray.dump_pickle()
@@ -73,7 +78,7 @@ class Dataset(object):
 
         self.cluster_table = pd.DataFrame(clusters)
         self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
-                                      'CLST_WORKDIR', 'EXPT_IDS', 'SWEEPS']
+                                      'CLST_WORKDIR', 'CLST_HKLOUT', 'EXPT_IDS', 'SWEEPS']
 
     def retrieve_unique_mtzs(self):
         mtz_list = []
@@ -81,10 +86,9 @@ class Dataset(object):
         if self.cluster_table is None:
             return mtz_list
 
-        clst_workdirs = self.cluster_table.drop_duplicates('SWEEPS').CLST_WORKDIR.tolist()
+        clst_mtzs = self.cluster_table.drop_duplicates('SWEEPS').CLST_HKLOUT.tolist()
 
-        for workdir in clst_workdirs:
-            mtz_fname = os.path.join(workdir, 'merged_FREE.mtz')
+        for mtz_fname in clst_mtzs:
             if os.path.isfile(mtz_fname):
                 mtz_list.append(mtz_fname)
 
@@ -97,6 +101,7 @@ class Dataset(object):
                                self.platform, self.queue_name, self.queue_environment, self.max_concurrent_nprocs,
                                self.cleanup, self.dials_exe)
         self.mrarray.run()
+        self.mrarray.reload_mrruns()
         self.mrarray.dump_pickle()
 
     def process(self, experiments_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,

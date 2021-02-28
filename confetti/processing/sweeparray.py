@@ -1,4 +1,5 @@
 import os
+import pickle
 from pyjob import TaskFactory
 import logging
 from confetti.io import Experiments
@@ -53,6 +54,11 @@ class SweepArray(object):
 
         return info
 
+    def dump_pickle(self):
+        self.make_workdir()
+        with open(self.pickle_fname, 'wb') as fhandle:
+            pickle.dump(self, fhandle)
+
     def make_workdir(self):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
@@ -96,3 +102,9 @@ class SweepArray(object):
         for imageset in self.imported_expt.imagesets:
             new_imagesets.append(imageset[slice])
         self.imported_expt.imagesets = tuple(new_imagesets)
+
+    def reload_sweeps(self):
+        new_sweeps = []
+        for sweep in self.sweeps:
+            new_sweeps.append(Sweep('dummy', 'dummy', 'dummy').from_pickle(sweep.pickle_fname))
+        self.sweeps = new_sweeps

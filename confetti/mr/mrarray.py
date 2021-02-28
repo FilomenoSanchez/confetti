@@ -81,3 +81,10 @@ class MrArray(object):
         with TaskFactory(self.platform, self.scripts, **self._other_task_info) as task:
             task.name = 'mr-array'
             task.run()
+
+    def reload_mrruns(self):
+        new_mr_runs = []
+        for mr_run in self.mr_runs:
+            with open(mr_run.pickle_fname, 'rb') as fhandle:
+                new_mr_runs.append(pickle.load(fhandle))
+        self.mr_runs = new_mr_runs
