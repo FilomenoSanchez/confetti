@@ -1,7 +1,16 @@
 import os
 import subprocess
+from enum import Enum
 from confetti.wrappers import touch
 from confetti.wrappers.wrapper import Wrapper
+
+
+class PhaserScores(Enum):
+    """An enumerator that contains the figures of merit to be parsed from phaser logfile"""
+
+    LLG = 'LLG'
+    TFZ = 'TFZ'
+    RFZ = 'RFZ'
 
 
 class Phaser(Wrapper):
@@ -9,8 +18,17 @@ class Phaser(Wrapper):
         self.stdin = stdin
         self.root = root
         self.logcontents = None
+        self.RFZ = "NA"
+        self.TFZ = "NA"
+        self.LLG = "NA"
+        self.eLLG = "NA"
+        self.VRMS = "NA"
         self.phaser_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'phaser')
         super(Phaser, self).__init__(workdir=os.path.join(workdir, 'phaser'))
+
+    @property
+    def summary(self):
+        return self.LLG, self.TFZ, self.RFZ, self.eLLG
 
     @property
     def keywords(self):
@@ -42,4 +60,42 @@ class Phaser(Wrapper):
         os.chdir(original_dir)
 
     def _parse_logfile(self):
-        pass
+
+        # Parse the pdbout for LLG, TFZ and RFZ
+        figures_of_merit_remark = []
+        llg_remark = []
+        if os.path.isfile(self.expected_output):
+            with open(self.expected_output, "r") as fhandle:
+                lines = fhandle.readlines()
+            llg_remark = [x for x in lines if 'REMARK' in x and "Log-Likelihood Gain" in x]
+            figures_of_merit_remark = [x for x in lines if ('REMARK' in x) and ("TFZ" in x or "RFZ" in x)]
+
+        if not any(figures_of_merit_remark):
+            self.error = True
+            self.logger.error('Cannot find REMARK entry with figures of merit!')
+            return
+
+        for attribute in PhaserScores:
+            values = [x for x in figures_of_merit_remark[0].split() if '%s=' % attribute.value in x]
+            if any(values):
+                self.__setattr__(attribute.value, values[-1].split("=")[-1].rstrip().lstrip())
+
+        if any(llg_remark):
+            self.LLG = llg_remark[0].split()[-1].rstrip().lstrip()
+
+        # Parse the logfile for eLLG and VRMS
+        ellg_reached = False
+        for line in self.logcontents.split("\n"):
+            line = line.rstrip().lstrip()
+            if "eLLG   RMSD frac-scat  Ensemble" in line:
+                ellg_reached = True
+            elif ellg_reached:
+                self.eLLG = line.split()[0]
+                ellg_reached = False
+            if "SOLU ENSEMBLE" in line and "VRMS DELTA" in line:
+                self.VRMS = line.split()[5].rstrip().lstrip()
+                break
+
+        if self.LLG == "NA" or self.TFZ == "NA":
+            self.logger.error("Unable to parse TFZ (%s) and LLG (%s)" % (self.TFZ, self.LLG))
+            self.error = True
