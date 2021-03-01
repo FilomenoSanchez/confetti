@@ -85,7 +85,7 @@ class Phaser(Wrapper):
 
         # Parse the logfile for eLLG and VRMS
         ellg_reached = False
-        for line in self.logcontents.split("\n"):
+        for line in self.logcontents.decode().split("\n"):
             line = line.rstrip().lstrip()
             if "eLLG   RMSD frac-scat  Ensemble" in line:
                 ellg_reached = True

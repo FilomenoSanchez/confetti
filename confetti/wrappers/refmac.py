@@ -51,7 +51,7 @@ class Refmac(Wrapper):
 
     def _parse_logfile(self):
         reached_end = False
-        for line in self.logcontents.split("\n"):
+        for line in self.logcontents.decode().split("\n"):
             if "Final results" in line:
                 reached_end = True
             elif reached_end and "R factor" in line:

@@ -77,7 +77,7 @@ class Buccaneer(Wrapper):
 
     def _parse_logfile(self):
         reached_end = False
-        for line in self.logcontents.split("\n"):
+        for line in self.logcontents.decode().split("\n"):
             if "Completeness by residues built:" in line:
                 self.completeness = float(line.rstrip().lstrip().split()[-1].replace('%', ''))
             elif "Final results" in line:
