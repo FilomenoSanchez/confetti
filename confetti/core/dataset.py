@@ -19,6 +19,7 @@ class Dataset(object):
         self.completeness_array = None
         self.cluster_table = None
         self.mr_table = None
+        self.completeness_table = None
         self.queue_name = queue_name
         self.queue_environment = queue_environment
         self.max_concurrent_nprocs = max_concurrent_nprocs
@@ -116,6 +117,15 @@ class Dataset(object):
         self.mr_table.columns = ['DATASET', 'MR_ID', 'LLG', 'TFZ', 'RFZ', 'eLLG', 'RFMC_RFACT', 'RFMC_RFREE',
                                  'BUCC_RFACT', 'BUCC_RFREE', 'BUCC_COMPLETENESS', 'MR_HKLIN']
 
+    def create_completeness_table(self):
+        table = []
+
+        for dataset in self.completeness_array.completeness_tables:
+            table.append((self.id, dataset.id, *dataset.summary))
+
+        self.completeness_table = pd.DataFrame(table)
+        self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'KSD_r', 'KSD_phi', 'KSD_theta', 'KSD_r_prime']
+
     def retrieve_unique_mtzs(self):
         mtz_list = []
 
@@ -147,8 +157,8 @@ class Dataset(object):
 
         return input_reflections, input_experiments
 
-    def process(self, experiments_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
-                sweeps_slice=None, cluster_thresholds=(100, 200, 300, 500, 1000), reset_wavelenght=None):
+    def process(self, experiments_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, sweeps_slice=None,
+                cluster_thresholds=(100, 200, 300, 500, 1000), reset_wavelenght=None, expand_to_p1=True):
         self.make_workdir()
         self.logger.info('Processing sweeps for dataset {}'.format(self.id))
         self.process_sweeps(experiments_fname, sweeps_slice, reset_wavelenght)
@@ -156,4 +166,11 @@ class Dataset(object):
         self.process_clusters(cluster_thresholds)
         self.logger.info('Creating cluster table for dataset {}'.format(self.id))
         self.create_cluster_table()
+        self.logger.info('Running MR dataset {}'.format(self.id))
         self.run_mr(mw, phaser_stdin, refmac_stdin, buccaneer_keywords)
+        self.logger.info('Creating MR results table for dataset {}'.format(self.id))
+        self.create_mr_table()
+        self.logger.info('Processing completeness for dataset {}'.format(self.id))
+        self.process_completeness(expand_to_p1)
+        self.logger.info('Creating completeness table for dataset {}'.format(self.id))
+        self.create_completeness_table()

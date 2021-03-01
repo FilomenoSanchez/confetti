@@ -69,8 +69,8 @@ class CompletenessArray(object):
             os.mkdir(workdir)
             dataset = Completeness()
             dataset.is_p1 = expand_to_p1
-            dataset.experiments = input_fnames[0]
-            dataset.reflections = input_fnames[1]
+            dataset.experiments_fname = input_fnames[0]
+            dataset.reflections_fname = input_fnames[1]
             dataset.workdir = workdir
             dataset.id = idx
             dataset.csv_out_fname = os.path.join(workdir, 'completeness.csv')
@@ -87,8 +87,10 @@ class CompletenessArray(object):
             task.name = 'completeness-array'
             task.run()
 
-    def reload_tables(self, is_p1=True):
+    def reload_tables(self):
         new_tables = []
         for table in self.completeness_tables:
-            new_tables.append(Completeness().from_csv(table.csv_out_fname, is_p1))
+            updated_df = Completeness().from_csv(table.csv_out_fname, table.is_p1).table
+            table.table = updated_df.table.copy(True)
+            new_tables.append(table)
         self.completeness_tables = new_tables
