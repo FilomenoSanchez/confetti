@@ -12,6 +12,7 @@ class SweepArray(object):
                  max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.experiments_fname = experiments_fname
         self.workdir = os.path.join(workdir, 'sweeps')
+        self.pickle_fname = os.path.join(self.workdir, 'sweeparray.pckl')
         self.imported_expt = Experiments(experiments_fname)
         self.dials_exe = dials_exe
         self.scripts = []
