@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pyjob
+import logging
 from scipy.stats import gaussian_kde, ks_2samp
 from scipy.spatial import ConvexHull
 from sklearn.cluster import MeanShift
@@ -8,13 +10,18 @@ from confetti.io.reflections_parser import Reflections
 from confetti.io.experiments_parser import Experiments
 
 
-class CompletenessTable(object):
+class Completeness(object):
 
     def __init__(self):
         self.is_p1 = False
         self.table = None
         self.reflections = None
         self.experiments = None
+        self.csv_out_fname = None
+        self.dials_exe = 'dials'
+        self.workdir = None
+        self.id = None
+        self.logger = logging.getLogger(__name__)
 
     # ------------------ Class methods ------------------
 
@@ -37,18 +44,35 @@ class CompletenessTable(object):
     # ------------------ Properties ------------------
 
     @property
+    def python_script(self):
+        return """{dials_exe}.python << EOF
+from confetti.completeness import Completeness
+completeness = Completeness().from_raw_data('{experiments_fname}', '{reflections_fname}', {is_p1})
+completeness.get_res_density()
+completeness.get_missing_observed_density_abc_weighted('RES_CUMSUM')
+completeness.table.to_csv({csv_out_fname})
+EOF""".format(**self.__dict__)
+
+    @property
+    def script(self):
+        script = pyjob.Script(directory=self.workdir, prefix='completeness_table_{}'.format(self.id),
+                              stem='', suffix='.sh')
+        script.append(self.python_script)
+        return script
+
+    @property
     def completeness(self):
 
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         observed_set = miller_array.unique_under_symmetry().map_to_asu()
         observed_set = observed_set.generate_bijvoet_mates()
-        print('Overall completeness: {}'.format(observed_set.completeness()))
+        self.logger.info('Overall completeness: {}'.format(observed_set.completeness()))
 
-        print('Completeness by bins:')
+        self.logger.info('Completeness by bins:')
         binner = observed_set.setup_binner(auto_binning=True)
         completeness = observed_set.completeness(use_binning=True)
         for bin_idx, bin_completeness in zip(binner.range_all(), completeness.data):
-            print(bin_idx, binner.bin_d_range(bin_idx), bin_completeness)
+            self.logger.info(bin_idx, binner.bin_d_range(bin_idx), bin_completeness)
 
         return observed_set.completeness()
 
@@ -161,10 +185,12 @@ class CompletenessTable(object):
 
     def get_reflection_table(self, expand_to_p1=True):
         if self.reflections is None:
-            print('No reflections registered!')
+            self.logger.error('No reflections registered!')
             return
 
+        self.logger.info('Creating reflection table')
         df = self.compute_df(self.reflections.data, self.experiments.data, expand_to_p1)
+        self.logger.info('Loading spherical coords')
         r, theta, phi = self.compute_spherical_coords(df)
         df['r'] = r
         df['phi'] = phi
@@ -173,12 +199,13 @@ class CompletenessTable(object):
         self.is_p1 = expand_to_p1
 
     def get_res_density(self):
+        self.logger.info('Calculating resolution density')
         self.table['RES_DENSITY'] = self.get_density(self.table['RES'])
         self.table['RES_CUMSUM'] = self.get_cumulative_density(self.table['RES_DENSITY'])
 
     def get_unique_reflections(self):
         if self.reflections is None:
-            print('No reflections registered!')
+            self.logger.error('No reflections registered!')
             return
 
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
@@ -212,6 +239,7 @@ class CompletenessTable(object):
         self.table['UNIQUE_ID'] = unique_ids
 
     def get_missing_observed_density_abc_weighted(self, weight):
+        self.logger.info('Calculating missing reflection ABC weighted density')
 
         obs_df = self.table[self.table['OBSERVED']]
         missing_df = self.table[~self.table['OBSERVED']]
@@ -252,13 +280,13 @@ class CompletenessTable(object):
 
     def remove_random_sample(self, sample=0.1):
         if self.reflections is None:
-            print('No reflections registered!')
+            self.logger.error('No reflections registered!')
             return
 
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         space_group = miller_array.space_group()
         delete_nreflections = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample)
-        print('Deleting {} reflections at random'.format(delete_nreflections))
+        self.logger.info('Deleting {} reflections at random'.format(delete_nreflections))
         df_to_delete = self.table.sample(n=delete_nreflections, axis=0)
 
         idx_delete = []
@@ -278,14 +306,14 @@ class CompletenessTable(object):
 
     def remove_coord_range(self, sample=0.1, coord='phi'):
         if self.reflections is None:
-            print('No reflections registered!')
+            self.logger.error('No reflections registered!')
             return
 
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         space_group = miller_array.space_group()
         nreflections = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample)
         coord_threshold = self.table.loc[(self.table.IS_UNIQUE)].sort_values(by=coord)[coord].to_list()[nreflections]
-        print('Deleting {} reflections below {} {}'.format(nreflections, coord, coord_threshold))
+        self.logger.info('Deleting {} reflections below {} {}'.format(nreflections, coord, coord_threshold))
         df_to_delete = self.table.loc[(self.table[coord] < coord_threshold) & (self.table.IS_UNIQUE)]
 
         idx_delete = []

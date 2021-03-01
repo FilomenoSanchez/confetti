@@ -1,8 +1,8 @@
-def CompletenessTable(*args, **kwargs):
-    """:py:obj:`~confetti.completeness.completenesstable.CompletenessTable` instance"""
-    from confetti.completeness.completenesstable import CompletenessTable
+def Completeness(*args, **kwargs):
+    """:py:obj:`~confetti.completeness.completeness.Completeness` instance"""
+    from confetti.completeness.completeness import Completeness
 
-    return CompletenessTable(*args, **kwargs)
+    return Completeness(*args, **kwargs)
 
 
 def CompletenessArray(*args, **kwargs):

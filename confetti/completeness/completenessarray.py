@@ -2,13 +2,13 @@ import os
 import pickle
 from pyjob import TaskFactory
 import logging
-from confetti.completeness import CompletenessTable
+from confetti.completeness import Completeness
 
 
 class CompletenessArray(object):
 
-    def __init__(self, workdir, input_fnames, platform="sge", queue_name=None, queue_environment=None,
-                 max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
+    def __init__(self, workdir, input_reflections, input_experiments, platform="sge", queue_name=None,
+                 queue_environment=None, max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.workdir = os.path.join(workdir, 'completeness')
         self.pickle_fname = os.path.join(self.workdir, 'completenessarray.pckl')
         self.scripts = []
@@ -20,7 +20,8 @@ class CompletenessArray(object):
         self.shell_interpreter = "/bin/bash"
         self.dials_exe = dials_exe
         self.cleanup = cleanup
-        self.input_fnames = input_fnames
+        self.input_reflections = input_reflections
+        self.input_experiments = input_experiments
         self.logger = logging.getLogger(__name__)
 
     # ------------------ Class methods ------------------
@@ -36,7 +37,7 @@ class CompletenessArray(object):
     def _other_task_info(self):
         """A dictionary with the extra kwargs for :py:obj:`pyjob.TaskFactory`"""
 
-        info = {'directory': self.workdir, 'shell': self.shell_interpreter, 'cleanup': self.cleanup}
+        info = dict(directory=self.workdir, shell=self.shell_interpreter, cleanup=self.cleanup)
 
         if self.platform == 'local':
             info['processes'] = self.max_concurrent_nprocs
@@ -60,10 +61,31 @@ class CompletenessArray(object):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
-    def run(self):
+    def run(self, expand_to_p1=True):
         self.make_workdir()
 
-        pass
+        for idx, input_fnames in enumerate(zip(self.input_experiments, self.input_reflections)):
+            workdir = os.path.join(self.workdir, 'dataset_{}'.format(idx))
+            os.mkdir(workdir)
+            dataset = Completeness()
+            dataset.is_p1 = expand_to_p1
+            dataset.experiments = input_fnames[0]
+            dataset.reflections = input_fnames[1]
+            dataset.workdir = workdir
+            dataset.id = idx
+            dataset.csv_out_fname = os.path.join(workdir, 'completeness.csv')
+            dataset.dials_exe = self.dials_exe
+
+            self.completeness_tables.append(dataset)
+            self.scripts.append(dataset.script)
+
+        if len(self.scripts) == 0:
+            raise ValueError('No completeness datasets to process!')
+
+        self.logger.info('Processing dataset completeness')
+        with TaskFactory(self.platform, self.scripts, **self._other_task_info) as task:
+            task.name = 'completeness-array'
+            task.run()
 
     def reload_tables(self):
         new_tables = []
