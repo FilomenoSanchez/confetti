@@ -62,6 +62,7 @@ class CompletenessArray(object):
             os.mkdir(self.workdir)
 
     def prepare_scripts(self, expand_to_p1=True):
+        self.make_workdir()
         for idx, input_fnames in enumerate(zip(self.input_experiments, self.input_reflections)):
             workdir = os.path.join(self.workdir, 'dataset_{}'.format(idx))
             os.mkdir(workdir)
@@ -78,7 +79,6 @@ class CompletenessArray(object):
             self.scripts.append(dataset.script)
 
     def run(self, expand_to_p1=True):
-        self.make_workdir()
         self.prepare_scripts(expand_to_p1)
 
         if len(self.scripts) == 0:

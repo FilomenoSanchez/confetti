@@ -66,6 +66,7 @@ class MrArray(object):
             os.mkdir(self.workdir)
 
     def prepare_scripts(self):
+        self.make_workdir()
         for idx, mtz_fname in enumerate(self.mtz_list, 1):
             mr_run = MrRun(idx, self.workdir, mtz_fname, self.mw, self.phaser_stdin,
                            self.refmac_stdin, self.buccaneer_keywords)
@@ -76,7 +77,6 @@ class MrArray(object):
             self.scripts.append(mr_run.script)
 
     def run(self):
-        self.make_workdir()
         self.prepare_scripts()
 
         self.logger.info('Processing mr array')
