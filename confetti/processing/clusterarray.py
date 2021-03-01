@@ -50,7 +50,7 @@ class ClusterArray(object):
     def _other_task_info(self):
         """A dictionary with the extra kwargs for :py:obj:`pyjob.TaskFactory`"""
 
-        info = {'directory': self.workdir, 'shell': self.shell_interpreter, 'cleanup': self.cleanup}
+        info = dict(directory=self.workdir, shell=self.shell_interpreter, cleanup=self.cleanup)
 
         if self.platform == 'local':
             info['processes'] = self.max_concurrent_nprocs

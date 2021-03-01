@@ -42,7 +42,7 @@ class Sweep(object):
     @cached_property
     def experiment_identifier(self):
         experiments = Experiments(self.integrated_experiments)
-        return experiments[0].identifier
+        return experiments.data[0].identifier
 
     @property
     def python_script(self):
