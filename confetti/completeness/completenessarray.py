@@ -61,9 +61,7 @@ class CompletenessArray(object):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
-    def run(self, expand_to_p1=True):
-        self.make_workdir()
-
+    def prepare_scripts(self, expand_to_p1=True):
         for idx, input_fnames in enumerate(zip(self.input_experiments, self.input_reflections)):
             workdir = os.path.join(self.workdir, 'dataset_{}'.format(idx))
             os.mkdir(workdir)
@@ -78,6 +76,10 @@ class CompletenessArray(object):
 
             self.completeness_tables.append(dataset)
             self.scripts.append(dataset.script)
+
+    def run(self, expand_to_p1=True):
+        self.make_workdir()
+        self.prepare_scripts(expand_to_p1)
 
         if len(self.scripts) == 0:
             raise ValueError('No completeness datasets to process!')

@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import pickle
+from pyjob import TaskFactory
 import logging
 from confetti.completeness import CompletenessArray
 from confetti.processing import SweepArray, ClusterArray
@@ -37,6 +38,25 @@ class Dataset(object):
         with open(pickle_fname, 'rb') as fhandle:
             return pickle.load(fhandle)
 
+    # ------------------ General properties ------------------
+
+    @property
+    def _other_task_info(self):
+        """A dictionary with the extra kwargs for :py:obj:`pyjob.TaskFactory`"""
+
+        info = {'directory': self.workdir, 'shell': self.shell_interpreter, 'cleanup': self.cleanup}
+
+        if self.platform == 'local':
+            info['processes'] = self.max_concurrent_nprocs
+        else:
+            info['max_array_size'] = self.max_concurrent_nprocs
+        if self.queue_environment is not None:
+            info['environment'] = self.queue_environment
+        if self.queue_name is not None:
+            info['queue'] = self.queue_name
+
+        return info
+
     # ------------------ General methods ------------------
 
     def dump_pickle(self):
@@ -70,24 +90,41 @@ class Dataset(object):
         self.clusterarray.reload_cluster_sequences()
         self.clusterarray.dump_pickle()
 
-    def run_mr(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords):
+    def prepare_mr(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords):
         mtz_list = self.retrieve_unique_mtzs()
 
         self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
                                self.platform, self.queue_name, self.queue_environment, self.max_concurrent_nprocs,
                                self.cleanup, self.dials_exe)
-        self.mrarray.run()
-        self.mrarray.reload_mrruns()
-        self.mrarray.dump_pickle()
+        self.mrarray.prepare_scripts()
 
-    def process_completeness(self, expand_to_p1=True):
+    def prepare_completeness(self, expand_to_p1=True):
         input_reflections, input_experiments = self.retrieve_scaled_files()
         self.completeness_array = CompletenessArray(self.workdir, input_reflections, input_experiments,
                                                     self.platform, self.queue_name, self.queue_environment,
                                                     self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
-        self.completeness_array.run(expand_to_p1)
+        self.completeness_array.prepare_scripts(expand_to_p1)
+
+    def post_processing(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, expand_to_p1=True):
+        self.prepare_mr(mw, phaser_stdin, refmac_stdin, buccaneer_keywords)
+        self.prepare_completeness(expand_to_p1)
+
+        if len(self.completeness_array.scripts) == 0 or len(self.mrarray.scripts) == 0:
+            raise ValueError('No MR runs or completeness tables to process!')
+
+        self.logger.info('Submitting task for post processing of dataset {}'.format(self.id))
+        scripts = self.completeness_array.scripts + self.mrarray.scripts
+        with TaskFactory(self.platform, scripts, **self._other_task_info) as task:
+            task.name = 'post-processing'
+            task.run()
+
+        self.logger.info('Retrieving post processing results now...')
+        self.mrarray.reload_mrruns()
+        self.mrarray.dump_pickle()
+        self.create_mr_table()
         self.completeness_array.reload_tables()
         self.completeness_array.dump_pickle()
+        self.create_completeness_table()
 
     def create_cluster_table(self):
         table = []
@@ -124,7 +161,8 @@ class Dataset(object):
             table.append((self.id, dataset.id, *dataset.summary))
 
         self.completeness_table = pd.DataFrame(table)
-        self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'KSD_r', 'KSD_phi', 'KSD_theta', 'KSD_r_prime']
+        self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'SCALED_REFL', 'SCALED_EXPT',
+                                           'KSD_r', 'KSD_phi', 'KSD_theta', 'KSD_r_prime']
 
     def retrieve_unique_mtzs(self):
         mtz_list = []
@@ -166,11 +204,5 @@ class Dataset(object):
         self.process_clusters(cluster_thresholds)
         self.logger.info('Creating cluster table for dataset {}'.format(self.id))
         self.create_cluster_table()
-        self.logger.info('Running MR dataset {}'.format(self.id))
-        self.run_mr(mw, phaser_stdin, refmac_stdin, buccaneer_keywords)
-        self.logger.info('Creating MR results table for dataset {}'.format(self.id))
-        self.create_mr_table()
-        self.logger.info('Processing completeness for dataset {}'.format(self.id))
-        self.process_completeness(expand_to_p1)
-        self.logger.info('Creating completeness table for dataset {}'.format(self.id))
-        self.create_completeness_table()
+        self.logger.info('Running MR and processing completeness for dataset {}'.format(self.id))
+        self.post_processing(mw, phaser_stdin, refmac_stdin, buccaneer_keywords, expand_to_p1)

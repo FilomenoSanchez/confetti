@@ -101,7 +101,8 @@ EOF""".format(**self.__dict__)
 
     @property
     def summary(self):
-        return (self.ksd_r, self.ksd_phi, self.ksd_theta, self.ksd_r_prime)
+        return (self.reflections_fname, self.experiments_fname, self.ksd_r,
+                self.ksd_phi, self.ksd_theta, self.ksd_r_prime)
 
     # ------------------ Static methods ------------------
 
