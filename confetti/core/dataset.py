@@ -82,7 +82,7 @@ class Dataset(object):
                                       'CLST_WORKDIR', 'CLST_HKLOUT', 'RESOLUTION', 'CCHALF_MEAN', 'DELTA_CCHALF_MEAN',
                                       'CCHALF_STD', 'SCALE_N_DELETED_DATASETS', 'RPIM', 'RMEAS', 'RMERGE', 'CCHALF',
                                       'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS', 'COMPLETENESS_LOW',
-                                      'COMPLETENESS_HIGH', 'EXPT_IDS', 'SWEEPS']
+                                      'COMPLETENESS_HIGH', 'SPACE_GROUP', 'EXPT_IDS', 'SWEEPS']
 
     def create_mr_table(self):
         table = []
