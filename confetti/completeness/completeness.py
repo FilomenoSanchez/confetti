@@ -47,10 +47,10 @@ class Completeness(object):
     def python_script(self):
         return """{dials_exe}.python << EOF
 from confetti.completeness import Completeness
-completeness = Completeness().from_raw_data('{experiments_fname}', '{reflections_fname}', {is_p1})
+completeness = Completeness().from_raw_data('{experiments}', '{reflections}', {is_p1})
 completeness.get_res_density()
 completeness.get_missing_observed_density_abc_weighted('RES_CUMSUM')
-completeness.table.to_csv({csv_out_fname})
+completeness.table.to_csv('{csv_out_fname}')
 EOF""".format(**self.__dict__)
 
     @property
