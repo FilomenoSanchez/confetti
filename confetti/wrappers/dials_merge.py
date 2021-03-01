@@ -59,7 +59,7 @@ class DialsMerge(Wrapper):
                     self.i_sigma = float(line.split()[-1].rstrip())
                 elif 'Multiplicity' in line:
                     self.multiplicity = float(line.split()[-1].rstrip())
-                elif 'Completeness' in line:
+                elif 'Completeness' in line and '|' not in line:
                     self.completeness = float(line.split()[-1].rstrip())
                     self.completeness_high = float(line.split()[3].rstrip())
                     self.completeness_low = float(line.split()[2].rstrip())
