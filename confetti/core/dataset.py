@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import pickle
 import logging
+from confetti.completeness import CompletenessArray
 from confetti.processing import SweepArray, ClusterArray
 from confetti.mr import MrArray
 
@@ -15,6 +16,7 @@ class Dataset(object):
         self.sweeparray = None
         self.clusterarray = None
         self.mrarray = None
+        self.completeness_array = None
         self.cluster_table = None
         self.mr_table = None
         self.queue_name = queue_name
@@ -67,6 +69,25 @@ class Dataset(object):
         self.clusterarray.reload_cluster_sequences()
         self.clusterarray.dump_pickle()
 
+    def run_mr(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords):
+        mtz_list = self.retrieve_unique_mtzs()
+
+        self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
+                               self.platform, self.queue_name, self.queue_environment, self.max_concurrent_nprocs,
+                               self.cleanup, self.dials_exe)
+        self.mrarray.run()
+        self.mrarray.reload_mrruns()
+        self.mrarray.dump_pickle()
+
+    def process_completeness(self, expand_to_p1=True):
+        input_reflections, input_experiments = self.retrieve_scaled_files()
+        self.completeness_array = CompletenessArray(self.workdir, input_reflections, input_experiments,
+                                                    self.platform, self.queue_name, self.queue_environment,
+                                                    self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
+        self.completeness_array.run(expand_to_p1)
+        self.completeness_array.reload_tables()
+        self.completeness_array.dump_pickle()
+
     def create_cluster_table(self):
         table = []
 
@@ -79,8 +100,9 @@ class Dataset(object):
 
         self.cluster_table = pd.DataFrame(table)
         self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
-                                      'CLST_WORKDIR', 'CLST_HKLOUT', 'RESOLUTION', 'CCHALF_MEAN', 'DELTA_CCHALF_MEAN',
-                                      'CCHALF_STD', 'SCALE_N_DELETED_DATASETS', 'RPIM', 'RMEAS', 'RMERGE', 'CCHALF',
+                                      'CLST_WORKDIR', 'CLST_HKLOUT', 'CLST_SCALED_REFL', 'CLST_SCALED_EXPT',
+                                      'RESOLUTION', 'CCHALF_MEAN', 'DELTA_CCHALF_MEAN', 'CCHALF_STD',
+                                      'SCALE_N_DELETED_DATASETS', 'RPIM', 'RMEAS', 'RMERGE', 'CCHALF',
                                       'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS', 'COMPLETENESS_LOW',
                                       'COMPLETENESS_HIGH', 'SPACE_GROUP', 'EXPT_IDS', 'SWEEPS']
 
@@ -108,15 +130,22 @@ class Dataset(object):
 
         return mtz_list
 
-    def run_mr(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords):
-        mtz_list = self.retrieve_unique_mtzs()
+    def retrieve_scaled_files(self):
+        input_reflections = []
+        input_experiments = []
 
-        self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
-                               self.platform, self.queue_name, self.queue_environment, self.max_concurrent_nprocs,
-                               self.cleanup, self.dials_exe)
-        self.mrarray.run()
-        self.mrarray.reload_mrruns()
-        self.mrarray.dump_pickle()
+        if self.cluster_table is None:
+            return input_reflections, input_experiments
+
+        scaled_refl_list = self.cluster_table.drop_duplicates('SWEEPS').CLST_SCALED_REFL.tolist()
+        scaled_expt_list = self.cluster_table.drop_duplicates('SWEEPS').CLST_SCALED_EXPT.tolist()
+
+        for scaled_refl, scaled_expt in zip(scaled_refl_list, scaled_expt_list):
+            if os.path.isfile(scaled_expt) and os.path.isfile(scaled_refl):
+                input_reflections.append(scaled_refl)
+                input_experiments.append(scaled_expt)
+
+        return input_reflections, input_experiments
 
     def process(self, experiments_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
                 sweeps_slice=None, cluster_thresholds=(100, 200, 300, 500, 1000), reset_wavelenght=None):

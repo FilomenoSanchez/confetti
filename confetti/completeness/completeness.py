@@ -33,7 +33,7 @@ class Completeness(object):
         return dataset
 
     @classmethod
-    def from_csv(cls, csv_fname, is_p1):
+    def from_csv(cls, csv_fname, is_p1=True):
         dataset = cls()
         dataset.table = pd.read_csv(csv_fname)
         if 'Unnamed: 0' in dataset.table.columns:

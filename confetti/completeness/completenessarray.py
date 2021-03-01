@@ -87,9 +87,8 @@ class CompletenessArray(object):
             task.name = 'completeness-array'
             task.run()
 
-    def reload_tables(self):
+    def reload_tables(self, is_p1=True):
         new_tables = []
         for table in self.completeness_tables:
-            with open(table.pickle_fname, 'rb') as fhandle:
-                new_tables.append(pickle.load(fhandle))
+            new_tables.append(Completeness().from_csv(table.csv_out_fname, is_p1))
         self.completeness_tables = new_tables

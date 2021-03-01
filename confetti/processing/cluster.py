@@ -29,10 +29,18 @@ class Cluster(object):
         return os.path.join(self.workdir, 'merged_FREE.mtz')
 
     @property
+    def scaled_refl(self):
+        return os.path.join(self.workdir, 'scaled.refl')
+
+    @property
+    def scaled_expt(self):
+        return os.path.join(self.workdir, 'scaled.expt')
+
+    @property
     def summary(self):
-        return (self.id, self.clustering_threshold, self.nclusters, self.workdir,
-                self.hklout, self.resolution, *self.scaling_stats, *self.merging_stats,
-                tuple(sorted(self.experiments_identifiers)))
+        return (self.id, self.clustering_threshold, self.nclusters, self.workdir, self.hklout,
+                self.scaled_refl, self.scaled_expt, self.resolution, *self.scaling_stats,
+                *self.merging_stats, tuple(sorted(self.experiments_identifiers)))
 
     @cached_property
     def input_fnames(self):
