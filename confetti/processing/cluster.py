@@ -16,7 +16,10 @@ class Cluster(object):
         self.logger = logging.getLogger(__name__)
         self.sweeps_dir = sweeps_dir
         self.experiments_identifiers = []
-        self.nclusters = 0
+        self.nclusters = 'NA'
+        self.resolution = 'NA'
+        self.scaling_stats = ['NA', 'NA', 'NA']
+        self.merging_stats = ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
         self.exclude_sweeps = []
 
     # ------------------ General properties ------------------
@@ -28,7 +31,8 @@ class Cluster(object):
     @property
     def summary(self):
         return (self.id, self.clustering_threshold, self.nclusters, self.workdir,
-                self.hklout, tuple(sorted(self.experiments_identifiers)))
+                self.hklout, self.resolution, *self.scaling_stats, *self.merging_stats,
+                tuple(sorted(self.experiments_identifiers)))
 
     @cached_property
     def input_fnames(self):
@@ -79,13 +83,15 @@ class Cluster(object):
             self.error = True
             return
 
+        self.resolution = dials_resolution.resolution
         dials_scale = confetti.wrappers.DialsScale(self.workdir, 'symmetrized.refl', 'symmetrized.expt',
-                                                   dials_resolution.resolution, self.dials_exe, self.nprocs)
+                                                   self.resolution, self.dials_exe, self.nprocs)
         dials_scale.run()
         if dials_scale.error:
             self.logger.error('Cluster_{} failed to scale'.format(self.id))
             self.error = True
             return
+        self.scaling_stats = dials_scale.summary
 
         dials_merge = confetti.wrappers.DialsMerge(self.workdir, 'scaled.*', self.dials_exe)
         dials_merge.run()
@@ -93,6 +99,7 @@ class Cluster(object):
             self.logger.error('Cluster_{} failed to merge'.format(self.id))
             self.error = True
             return
+        self.merging_stats = dials_merge.summary
 
         freerflag = confetti.wrappers.FreeRFlag(self.workdir, 'merged.mtz', 'merged_FREE.mtz')
         freerflag.run()
