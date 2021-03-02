@@ -6,7 +6,7 @@ from confetti.wrappers.wrapper import Wrapper
 
 class Mtz2Various(Wrapper):
     def __init__(self, workdir, hklin, hklout, stdin):
-        self.hklin1 = hklin
+        self.hklin = hklin
         self.hklout = hklout
         self.stdin = stdin
         self.logcontents = None
