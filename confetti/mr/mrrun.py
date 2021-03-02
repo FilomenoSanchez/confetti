@@ -16,7 +16,7 @@ class MrRun(object):
         self.mw = mw
         self.ncopies = 0
         self.solvent = 0
-        self.nreflectins = 0
+        self.nreflections = 0
         self.phaser_stdin = phaser_stdin
         self.phaser = None
         self.refmac_stdin = refmac_stdin
@@ -93,7 +93,7 @@ EOF""".format(**self.__dict__)
         self.estimate_contents()
         self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.mtz_fname, self.phaser_stdin)
         self.refmac = Refmac(self.workdir, self.mtz_fname, self.phaser.expected_output, self.refmac_stdin)
-        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.mtz_fname, self.solvent, self.nreflectins,
+        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.mtz_fname, self.solvent, self.nreflections,
                              self.shelxe_keywords)
         self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout, self.refmac.xyzout,
                                    self.buccaneer_keywords)
@@ -120,4 +120,4 @@ EOF""".format(**self.__dict__)
 
         self.ncopies = ncopies
         self.solvent = solvent
-        self.nreflectins = mtz_parser.nreflectins
+        self.nreflections = mtz_parser.nreflections
