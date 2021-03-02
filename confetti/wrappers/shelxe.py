@@ -48,7 +48,7 @@ class Shelxe(Wrapper):
 
     @property
     def cmd(self):
-        return "{} {} {}".format(self.shelxe_exe, self.input_pda, self.keywords)
+        return "{} shelxe-input.pda {}".format(self.shelxe_exe, self.keywords)
 
     # ------------------ General methods ------------------
 
