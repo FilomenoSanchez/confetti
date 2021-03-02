@@ -96,6 +96,20 @@ def Phaser(*args, **kwargs):
     return Phaser(*args, **kwargs)
 
 
+def Shelxe(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.shelxe.Shelxe` instance"""
+    from confetti.wrappers.shelxe import Shelxe
+
+    return Shelxe(*args, **kwargs)
+
+
+def Mtz2Various(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.mtz2various.Mtz2Various` instance"""
+    from confetti.wrappers.mtz2various import Mtz2Various
+
+    return Mtz2Various(*args, **kwargs)
+
+
 def DialsScale(*args, **kwargs):
     """:py:obj:`~confetti.wrappers.dials_scale.DialsScale` instance"""
     from confetti.wrappers.dials_scale import DialsScale

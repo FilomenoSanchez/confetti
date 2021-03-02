@@ -152,7 +152,7 @@ class Dataset(object):
 
         self.mr_table = pd.DataFrame(table)
         self.mr_table.columns = ['DATASET', 'MR_ID', 'LLG', 'TFZ', 'RFZ', 'eLLG', 'RFMC_RFACT', 'RFMC_RFREE',
-                                 'BUCC_RFACT', 'BUCC_RFREE', 'BUCC_COMPLETENESS', 'MR_HKLIN']
+                                 'SHELXE_CC', 'SHELXE_ACL', 'BUCC_RFACT', 'BUCC_RFREE', 'BUCC_COMPLETENESS', 'MR_HKLIN']
 
     def create_completeness_table(self):
         table = []

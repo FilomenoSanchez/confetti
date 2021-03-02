@@ -3,12 +3,12 @@ import pickle
 import pyjob
 import logging
 from confetti.mr import MtzParser
-from confetti.wrappers import Phaser, Refmac, Buccaneer
+from confetti.wrappers import Phaser, Refmac, Buccaneer, Shelxe
 
 
 class MrRun(object):
 
-    def __init__(self, id, workdir, mtz_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords):
+    def __init__(self, id, workdir, mtz_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords):
         self.id = id
         self.mtz_fname = mtz_fname
         self.workdir = os.path.join(workdir, 'mrrun_{}'.format(id))
@@ -16,12 +16,15 @@ class MrRun(object):
         self.mw = mw
         self.ncopies = 0
         self.solvent = 0
+        self.nreflectins = 0
         self.phaser_stdin = phaser_stdin
         self.phaser = None
         self.refmac_stdin = refmac_stdin
         self.refmac = None
         self.buccaneer_keywords = buccaneer_keywords
         self.buccaneer = None
+        self.shelxe_keywords = shelxe_keywords
+        self.shelxe = None
         self.initiate_wrappers()
         self.dials_exe = 'dials'
         self.logger = logging.getLogger(__name__)
@@ -52,7 +55,7 @@ EOF""".format(**self.__dict__)
 
     @property
     def summary(self):
-        return *self.phaser.summary, *self.refmac.summary, *self.buccaneer.summary
+        return *self.phaser.summary, *self.refmac.summary, *self.shelxe.summary, *self.buccaneer.summary
 
     # ------------------ General methods ------------------
 
@@ -81,12 +84,17 @@ EOF""".format(**self.__dict__)
         self.buccaneer.run()
         if self.buccaneer.error:
             self.logger.error('MR-Run {} failed to execute buccaneer'.format(self.id))
-            return
+
+        self.shelxe.run()
+        if self.shelxe.error:
+            self.logger.error('MR-Run {} failed to execute shelxe'.format(self.id))
 
     def initiate_wrappers(self):
         self.estimate_contents()
         self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.mtz_fname, self.phaser_stdin)
         self.refmac = Refmac(self.workdir, self.mtz_fname, self.phaser.expected_output, self.refmac_stdin)
+        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.mtz_fname, self.solvent, self.nreflectins,
+                             self.shelxe_keywords)
         self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout, self.refmac.xyzout,
                                    self.buccaneer_keywords)
 
@@ -112,3 +120,4 @@ EOF""".format(**self.__dict__)
 
         self.ncopies = ncopies
         self.solvent = solvent
+        self.nreflectins = mtz_parser.nreflectins
