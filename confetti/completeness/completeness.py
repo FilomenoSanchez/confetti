@@ -101,8 +101,9 @@ EOF""".format(**self.__dict__)
 
     @property
     def summary(self):
-        return (self.reflections_fname, self.experiments_fname, self.ksd_r,
-                self.ksd_phi, self.ksd_theta, self.ksd_r_prime)
+        return (self.reflections_fname, self.experiments_fname, self.ksd_r, self.ksd_phi, self.ksd_theta,
+                self.ksd_r_prime, self.get_ratio_high_density_reflections(),
+                self.get_ratio_high_density_reflections(0.6), self.get_ratio_high_density_reflections(0.9))
 
     # ------------------ Static methods ------------------
 
@@ -264,6 +265,13 @@ EOF""".format(**self.__dict__)
                 missing_idx += 1
 
         self.table['WEIGHTED_DENSITY'] = result
+        norm_density = (self.table.WEIGHTED_DENSITY - self.table.WEIGHTED_DENSITY.min()) / \
+                       (self.table.WEIGHTED_DENSITY.max() - self.table.WEIGHTED_DENSITY.min())
+        self.table['NORM_WEIGHTED_DENSITY'] = norm_density
+
+    def get_ratio_high_density_reflections(self, threshold=0.3):
+        return self.table.loc[(~self.table.OBSERVED) & (self.table.NORM_WEIGHTED_DENSITY > threshold)].shape[0] / \
+               self.table.loc[(~self.table.OBSERVED)].shape[0]
 
     def get_meanshift_labels(self, bandwidth=0.2, njobs=1):
         X = self.table.loc[(~self.table['OBSERVED']) & (self.table['WEIGHTED_DENSITY'] > 1.5)][['A', 'B', 'C']]
