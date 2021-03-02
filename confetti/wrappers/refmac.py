@@ -5,7 +5,7 @@ from confetti.wrappers.wrapper import Wrapper
 
 
 class Refmac(Wrapper):
-    def __init__(self, workdir, hklin, hklout, xyzin, xyzout, stdin):
+    def __init__(self, workdir, hklin, xyzin, stdin, hklout='refmac_out.mtz', xyzout='refmac_out.pdb'):
         self.hklin = hklin
         self.hklout = os.path.join(workdir, 'refmac', hklout)
         self.xyzin = xyzin

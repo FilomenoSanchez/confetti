@@ -13,20 +13,20 @@ class MrRun(object):
         self.mtz_fname = mtz_fname
         self.workdir = os.path.join(workdir, 'mrrun_{}'.format(id))
         self.pickle_fname = os.path.join(self.workdir, 'mrrun.pckl')
-        self.phaser = None
-        self.refmac_stdin = refmac_stdin
-        self.refmac = None
-        self.buccaneer = None
-        self.buccaneer_keywords = buccaneer_keywords
         self.mw = mw
         self.ncopies = 0
         self.solvent = 0
-        self.estimate_contents()
-        self.phaser_stdin = phaser_stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw, 'HKLIN': self.mtz_fname})
+        self.phaser_stdin = phaser_stdin
+        self.phaser = None
+        self.refmac_stdin = refmac_stdin
+        self.refmac = None
+        self.buccaneer_keywords = buccaneer_keywords
+        self.buccaneer = None
+        self.initiate_wrappers()
         self.dials_exe = 'dials'
         self.logger = logging.getLogger(__name__)
 
-        # ------------------ Class methods ------------------
+    # ------------------ Class methods ------------------
 
     @classmethod
     def from_pickle(cls, pickle_fname):
@@ -52,7 +52,7 @@ EOF""".format(**self.__dict__)
 
     @property
     def summary(self):
-        return tuple(*self.phaser.summary, *self.refmac.summary, *self.buccaneer.summary)
+        return *self.phaser.summary, *self.refmac.summary, *self.buccaneer.summary
 
     # ------------------ General methods ------------------
 
@@ -68,27 +68,27 @@ EOF""".format(**self.__dict__)
     def run(self):
         self.make_workdir()
 
-        self.phaser = Phaser(self.workdir, self.phaser_stdin)
         self.phaser.run()
         if self.phaser.error:
             self.logger.error('MR-Run {} failed to execute phaser'.format(self.id))
             return
 
-        self.refmac = Refmac(self.workdir, self.mtz_fname, 'refmac_out.mtz',
-                             self.phaser.expected_output, 'refmac_out.pdb', self.refmac_stdin)
         self.refmac.run()
         if self.refmac.error:
             self.logger.error('MR-Run {} failed to execute refmac'.format(self.id))
             return
 
-        self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout, self.refmac.xyzout,
-                                   self.buccaneer_keywords)
         self.buccaneer.run()
         if self.buccaneer.error:
             self.logger.error('MR-Run {} failed to execute buccaneer'.format(self.id))
             return
 
-    # ------------------ Static methods ------------------
+    def initiate_wrappers(self):
+        self.estimate_contents()
+        self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.mtz_fname, self.phaser_stdin)
+        self.refmac = Refmac(self.workdir, self.mtz_fname, self.phaser.expected_output, self.refmac_stdin)
+        self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout, self.refmac.xyzout,
+                                   self.buccaneer_keywords)
 
     def estimate_contents(self):
         mtz_parser = MtzParser(self.mtz_fname)
