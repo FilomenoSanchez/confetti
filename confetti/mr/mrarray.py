@@ -7,8 +7,9 @@ from confetti.mr import MrRun
 
 class MrArray(object):
 
-    def __init__(self, workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, platform="sge",
-                 queue_name=None, queue_environment=None, max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
+    def __init__(self, workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords,
+                 platform="sge", queue_name=None, queue_environment=None, max_concurrent_nprocs=1, cleanup=False,
+                 dials_exe='dials'):
         self.workdir = os.path.join(workdir, 'mr')
         self.pickle_fname = os.path.join(self.workdir, 'mrarray.pckl')
         self.ccp4_bin = os.path.join(os.environ.get('CCP4'), 'bin')
@@ -26,6 +27,7 @@ class MrArray(object):
         self.phaser_stdin = phaser_stdin
         self.refmac_stdin = refmac_stdin
         self.buccaneer_keywords = buccaneer_keywords
+        self.shelxe_keywords = shelxe_keywords
         self.logger = logging.getLogger(__name__)
 
     # ------------------ Class methods ------------------
@@ -69,7 +71,7 @@ class MrArray(object):
         self.make_workdir()
         for idx, mtz_fname in enumerate(self.mtz_list, 1):
             mr_run = MrRun(idx, self.workdir, mtz_fname, self.mw, self.phaser_stdin,
-                           self.refmac_stdin, self.buccaneer_keywords)
+                           self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords)
             mr_run.dials_exe = self.dials_exe
             mr_run.dump_pickle()
 

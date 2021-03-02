@@ -90,12 +90,12 @@ class Dataset(object):
         self.clusterarray.reload_cluster_sequences()
         self.clusterarray.dump_pickle()
 
-    def prepare_mr(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords):
+    def prepare_mr(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords):
         mtz_list = self.retrieve_unique_mtzs()
 
         self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
-                               self.platform, self.queue_name, self.queue_environment, self.max_concurrent_nprocs,
-                               self.cleanup, self.dials_exe)
+                               shelxe_keywords, self.platform, self.queue_name, self.queue_environment,
+                               self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
         self.mrarray.prepare_scripts()
 
     def prepare_completeness(self, expand_to_p1=True):
@@ -105,8 +105,8 @@ class Dataset(object):
                                                     self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
         self.completeness_array.prepare_scripts(expand_to_p1)
 
-    def post_processing(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, expand_to_p1=True):
-        self.prepare_mr(mw, phaser_stdin, refmac_stdin, buccaneer_keywords)
+    def post_processing(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords, expand_to_p1=True):
+        self.prepare_mr(mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords)
         self.prepare_completeness(expand_to_p1)
 
         if len(self.completeness_array.scripts) == 0 or len(self.mrarray.scripts) == 0:
@@ -195,8 +195,9 @@ class Dataset(object):
 
         return input_reflections, input_experiments
 
-    def process(self, experiments_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, sweeps_slice=None,
-                cluster_thresholds=(100, 200, 300, 500, 1000), reset_wavelenght=None, expand_to_p1=True):
+    def process(self, experiments_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords,
+                sweeps_slice=None, cluster_thresholds=(100, 200, 300, 500, 1000), reset_wavelenght=None,
+                expand_to_p1=True):
         self.make_workdir()
         self.logger.info('Processing sweeps for dataset {}'.format(self.id))
         self.process_sweeps(experiments_fname, sweeps_slice, reset_wavelenght)
@@ -205,4 +206,4 @@ class Dataset(object):
         self.logger.info('Creating cluster table for dataset {}'.format(self.id))
         self.create_cluster_table()
         self.logger.info('Running MR and processing completeness for dataset {}'.format(self.id))
-        self.post_processing(mw, phaser_stdin, refmac_stdin, buccaneer_keywords, expand_to_p1)
+        self.post_processing(mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords, expand_to_p1)

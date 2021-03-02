@@ -28,7 +28,7 @@ class Shelxe(Wrapper):
 
     @property
     def keywords(self):
-        return self._keywords.format(**{'SOLVENT': self.solvent, 'NREFLECTIOSN': math.ceil(self.nreflections / 10000)})
+        return self._keywords.format(**{'SOLVENT': self.solvent, 'NREFLECTIONS': math.ceil(self.nreflections / 10000)})
 
     @property
     def input_pda(self):
