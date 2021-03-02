@@ -17,7 +17,7 @@ class Shelxe(Wrapper):
         self._keywords = keywords
         self.logcontents = None
         self.shelxe_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'shelxe')
-        self.mtz2various_stdin = 'LABIN I=IMEAN SIGI=SIGIMEAN FREE=FreeR_flag\nOUTPUT SHELX\nEND'
+        self.mtz2various_stdin = '\nLABIN I=IMEAN SIGI=SIGIMEAN FREE=FreeR_flag\nOUTPUT SHELX\nEND\n'
         super(Shelxe, self).__init__(workdir=os.path.join(workdir, 'shelxe'))
 
     # ------------------ General properties ------------------
@@ -48,7 +48,7 @@ class Shelxe(Wrapper):
 
     @property
     def cmd(self):
-        return "{} {}".format(self.shelxe_exe, self.keywords)
+        return "{} {} {}".format(self.shelxe_exe, self.input_pda, self.keywords)
 
     # ------------------ General methods ------------------
 
