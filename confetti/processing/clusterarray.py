@@ -98,5 +98,6 @@ class ClusterArray(object):
     def reload_cluster_sequences(self):
         new_clst_seq = []
         for cluster_sequence in self.cluster_sequences:
-            new_clst_seq.append(ClusterSequence('dummy', 'dummy', 'dummy').from_pickle(cluster_sequence.pickle_fname))
+            if os.path.isfile(cluster_sequence.pickle_fname):
+                new_clst_seq.append(ClusterSequence('dummy', 'dummy', 'dummy').from_pickle(cluster_sequence.pickle_fname))
         self.cluster_sequences = new_clst_seq

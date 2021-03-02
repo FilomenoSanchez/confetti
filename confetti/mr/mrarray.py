@@ -89,6 +89,7 @@ class MrArray(object):
     def reload_mrruns(self):
         new_mr_runs = []
         for mr_run in self.mr_runs:
-            with open(mr_run.pickle_fname, 'rb') as fhandle:
-                new_mr_runs.append(pickle.load(fhandle))
+            if os.path.isfile(mr_run.pickle_fname):
+                with open(mr_run.pickle_fname, 'rb') as fhandle:
+                    new_mr_runs.append(pickle.load(fhandle))
         self.mr_runs = new_mr_runs

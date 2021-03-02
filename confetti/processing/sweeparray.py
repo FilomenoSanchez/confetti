@@ -107,5 +107,6 @@ class SweepArray(object):
     def reload_sweeps(self):
         new_sweeps = []
         for sweep in self.sweeps:
-            new_sweeps.append(Sweep('dummy', 'dummy', 'dummy').from_pickle(sweep.pickle_fname))
+            if os.path.isfile(sweep.pickle_fname):
+                new_sweeps.append(Sweep('dummy', 'dummy', 'dummy').from_pickle(sweep.pickle_fname))
         self.sweeps = new_sweeps
