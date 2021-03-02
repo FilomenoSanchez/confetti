@@ -286,7 +286,7 @@ EOF""".format(**self.__dict__)
                 labels.append(clustering.labels_[idx])
                 idx += 1
             else:
-                labels.append('NA')
+                labels.append(np.nan)
 
         self.table['MEANSHIFT_LABELS'] = labels
 
@@ -300,8 +300,7 @@ EOF""".format(**self.__dict__)
         if 'MEANSHIFT_LABELS' not in self.table.columns:
             self.get_meanshift_labels()
 
-        labels = set(self.table['MEANSHIFT_LABELS'].unique())
-        labels.remove('NA')
+        labels = tuple([x for x in self.table['MEANSHIFT_LABELS'].unique() if pd.notna(x)])
 
         total_hull = ConvexHull(self.table[['A', 'B', 'C']])
         missing_volume = 0
