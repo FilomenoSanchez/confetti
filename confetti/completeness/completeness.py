@@ -103,7 +103,8 @@ EOF""".format(**self.__dict__)
     def summary(self):
         return (self.reflections_fname, self.experiments_fname, self.ksd_r, self.ksd_phi, self.ksd_theta,
                 self.ksd_r_prime, self.get_ratio_high_density_reflections(),
-                self.get_ratio_high_density_reflections(0.6), self.get_ratio_high_density_reflections(0.9))
+                self.get_ratio_high_density_reflections(0.6), self.get_ratio_high_density_reflections(0.9),
+                self.get_volume_ratio())
 
     # ------------------ Static methods ------------------
 
@@ -273,17 +274,18 @@ EOF""".format(**self.__dict__)
         return self.table.loc[(~self.table.OBSERVED) & (self.table.NORM_WEIGHTED_DENSITY > threshold)].shape[0] / \
                self.table.loc[(~self.table.OBSERVED)].shape[0]
 
-    def get_meanshift_labels(self, bandwidth=0.2, njobs=1):
-        X = self.table.loc[(~self.table['OBSERVED']) & (self.table['WEIGHTED_DENSITY'] > 1.5)][['A', 'B', 'C']]
+    def get_meanshift_labels(self, bandwidth=0.05, njobs=1, threshold_quantile=0.75):
+        threshold = self.table.loc[(~self.table.OBSERVED)]['WEIGHTED_DENSITY'].quantile(threshold_quantile)
+        X = self.table.loc[(~self.table['OBSERVED']) & (self.table['WEIGHTED_DENSITY'] > threshold)][['A', 'B', 'C']]
         clustering = MeanShift(bandwidth=bandwidth, n_jobs=njobs).fit(X)
         labels = []
         idx = 0
         for is_observed, abc_density in zip(self.table['OBSERVED'].to_list(), self.table['WEIGHTED_DENSITY'].to_list()):
-            if abc_density > 1.5 and not is_observed:
+            if abc_density > threshold and not is_observed:
                 labels.append(clustering.labels_[idx])
                 idx += 1
             else:
-                labels.append(np.nan)
+                labels.append('NA')
 
         self.table['MEANSHIFT_LABELS'] = labels
 
@@ -292,6 +294,21 @@ EOF""".format(**self.__dict__)
         tmp_df.reset_index(drop=True, inplace=True)
         hull = ConvexHull(tmp_df)
         return hull
+
+    def get_volume_ratio(self):
+        if 'MEANSHIFT_LABELS' not in self.table.columns:
+            self.get_meanshift_labels()
+
+        labels = set(self.table['MEANSHIFT_LABELS'].unique())
+        labels.remove('NA')
+
+        total_hull = ConvexHull(self.table[['A', 'B', 'C']])
+        missing_volume = 0
+        for clst_label in labels:
+            hull = self.get_cluster_hull(clst_label)
+            missing_volume += hull.volume
+
+        return missing_volume / total_hull.volume
 
     def remove_random_sample(self, sample=0.1):
         if self.reflections is None:
