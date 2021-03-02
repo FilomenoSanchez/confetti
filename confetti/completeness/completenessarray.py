@@ -61,10 +61,10 @@ class CompletenessArray(object):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
-    def prepare_scripts(self, expand_to_p1=True):
+    def prepare_scripts(self, expand_to_p1=True, workdir_template='dataset_{}'):
         self.make_workdir()
         for idx, input_fnames in enumerate(zip(self.input_experiments, self.input_reflections), 1):
-            workdir = os.path.join(self.workdir, 'dataset_{}'.format(idx))
+            workdir = os.path.join(self.workdir, workdir_template.format(idx))
             os.mkdir(workdir)
             dataset = Completeness()
             dataset.is_p1 = expand_to_p1

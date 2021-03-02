@@ -103,7 +103,9 @@ class Dataset(object):
         self.completeness_array = CompletenessArray(self.workdir, input_reflections, input_experiments,
                                                     self.platform, self.queue_name, self.queue_environment,
                                                     self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
-        self.completeness_array.prepare_scripts(expand_to_p1)
+        self.completeness_array.prepare_scripts(False)
+        if expand_to_p1:
+            self.completeness_array.prepare_scripts(expand_to_p1, 'dataset_{}_p1')
 
     def post_processing(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords, expand_to_p1=True):
         self.prepare_mr(mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords)
