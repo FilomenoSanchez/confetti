@@ -92,7 +92,8 @@ class CompletenessArray(object):
     def reload_tables(self):
         new_tables = []
         for table in self.completeness_tables:
-            updated_df = Completeness().from_csv(table.csv_out_fname, table.is_p1).table
-            table.table = updated_df.table.copy(True)
-            new_tables.append(table)
+            if os.path.isfile(table.csv_out_fname):
+                updated_df = Completeness().from_csv(table.csv_out_fname, table.is_p1).table
+                table.table = updated_df.table.copy(True)
+                new_tables.append(table)
         self.completeness_tables = new_tables
