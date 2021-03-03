@@ -4,6 +4,7 @@ import pyjob
 import logging
 from scipy.stats import gaussian_kde, ks_2samp
 from scipy.spatial import ConvexHull
+from scipy.spatial.qhull import  QhullError
 from sklearn.cluster import MeanShift
 from cctbx import miller, array_family
 from confetti.io.reflections_parser import Reflections
@@ -292,11 +293,11 @@ EOF""".format(**self.__dict__)
 
     def get_cluster_hull_volume(self, cluster_label):
         tmp_df = self.table[self.table['MEANSHIFT_LABELS'] == cluster_label][['A', 'B', 'C']]
-        if tmp_df.shape[0] >= 4:
+        try:
             tmp_df.reset_index(drop=True, inplace=True)
             hull = ConvexHull(tmp_df)
             return hull.volume
-        else:
+        except QhullError:
             return 0
 
     def get_volume_ratio(self):
