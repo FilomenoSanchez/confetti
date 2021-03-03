@@ -18,8 +18,8 @@ class Cluster(object):
         self.experiments_identifiers = []
         self.nclusters = 'NA'
         self.resolution = 'NA'
-        self.scaling_stats = ['NA', 'NA', 'NA']
-        self.merging_stats = ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
+        self.scaling_stats = ['NA', 'NA', 'NA', 'NA']
+        self.merging_stats = ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
         self.exclude_sweeps = []
 
     # ------------------ General properties ------------------

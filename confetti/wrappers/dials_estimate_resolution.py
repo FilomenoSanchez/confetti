@@ -35,4 +35,4 @@ class DialsEstimateResolution(Wrapper):
         with open(self.logfile, 'r') as fhandle:
             for line in fhandle:
                 if 'Resolution cc_half:' in line:
-                    self.resolution = line.rstrip().split()[-1]
+                    self.resolution = float(line.rstrip().split()[-1])
