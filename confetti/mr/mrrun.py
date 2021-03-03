@@ -3,7 +3,7 @@ import pickle
 import pyjob
 import logging
 from confetti.mr import MtzParser
-from confetti.wrappers import Phaser, Refmac, Buccaneer, Shelxe
+from confetti.wrappers import Phaser, Refmac, Buccaneer, Shelxe, Reindex
 
 
 class MrRun(object):
@@ -17,6 +17,7 @@ class MrRun(object):
         self.ncopies = 0
         self.solvent = 0
         self.nreflections = 0
+        self.spacegroup = None
         self.phaser_stdin = phaser_stdin
         self.phaser = None
         self.refmac_stdin = refmac_stdin
@@ -76,6 +77,12 @@ EOF""".format(**self.__dict__)
             self.logger.error('MR-Run {} failed to execute phaser'.format(self.id))
             return
 
+        if self.phaser.output_spacegroup != self.spacegroup:
+            reindexed_error = self.reindex_input(self.phaser.output_spacegroup)
+            if reindexed_error:
+                self.logger.error('MR-Run {} failed to reindex input'.format(self.id))
+                return
+
         self.refmac.run()
         if self.refmac.error:
             self.logger.error('MR-Run {} failed to execute refmac'.format(self.id))
@@ -93,10 +100,21 @@ EOF""".format(**self.__dict__)
         self.estimate_contents()
         self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.mtz_fname, self.phaser_stdin)
         self.refmac = Refmac(self.workdir, self.mtz_fname, self.phaser.expected_output, self.refmac_stdin)
-        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.mtz_fname, self.solvent, self.nreflections,
-                             self.shelxe_keywords)
-        self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout, self.refmac.xyzout,
-                                   self.buccaneer_keywords)
+        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.mtz_fname, self.solvent,
+                             self.nreflections, self.shelxe_keywords)
+        self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout,
+                                   self.refmac.xyzout, self.buccaneer_keywords)
+
+    def reindex_input(self, spacegroup):
+        reindexed_mtz = os.path.join(self.workdir, 'reindex', 'reindex_input_{}.mtz'.format(spacegroup))
+        reindex = Reindex(self.workdir, self.mtz_fname, reindexed_mtz, spacegroup)
+        reindex.run()
+        self.refmac = Refmac(self.workdir, reindexed_mtz, self.phaser.expected_output, self.refmac_stdin)
+        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, reindexed_mtz,
+                             self.solvent, self.nreflections, self.shelxe_keywords)
+        self.buccaneer = Buccaneer(self.workdir, reindexed_mtz, self.refmac.hklout,
+                                   self.refmac.xyzout, self.buccaneer_keywords)
+        return reindex.error
 
     def estimate_contents(self):
         mtz_parser = MtzParser(self.mtz_fname)
@@ -121,3 +139,4 @@ EOF""".format(**self.__dict__)
         self.ncopies = ncopies
         self.solvent = solvent
         self.nreflections = mtz_parser.nreflections
+        self.spacegroup = mtz_parser.spacegroup_number

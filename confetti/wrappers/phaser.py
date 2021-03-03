@@ -1,6 +1,7 @@
 import os
 import subprocess
 from enum import Enum
+import gemmi
 from confetti.wrappers import touch
 from confetti.wrappers.wrapper import Wrapper
 
@@ -32,6 +33,14 @@ class Phaser(Wrapper):
     @property
     def summary(self):
         return self.LLG, self.TFZ, self.RFZ, self.eLLG
+
+    @property
+    def output_spacegroup(self):
+        if os.path.isfile(self.hklout):
+            mtz = gemmi.read_mtz_file(self.hklout)
+            return mtz.spacegroup.number
+        else:
+            return None
 
     @property
     def keywords(self):

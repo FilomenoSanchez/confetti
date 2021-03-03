@@ -65,12 +65,14 @@ class MtzParser(object):
         self.resolution = None
         self.nreflections = None
         self.spacegroup_symbol = None
+        self.spacegroup_number = None
         self.read_reflections()
 
     def read_reflections(self):
         self.reflection_file = gemmi.read_mtz_file(self.fname)
         self.nreflections = self.reflection_file.nreflections
         self.spacegroup_symbol = self.reflection_file.spacegroup.hm
+        self.spacegroup_number = self.reflection_file.spacegroup.number
         self.resolution = self.reflection_file.resolution_high()
 
     def parse(self):
