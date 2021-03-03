@@ -17,6 +17,8 @@ class MrRun(object):
         self.ncopies = 0
         self.solvent = 0
         self.nreflections = 0
+        self.low_res = 0
+        self.high_res = 0
         self.spacegroup = None
         self.phaser_stdin = phaser_stdin
         self.phaser = None
@@ -99,7 +101,8 @@ EOF""".format(**self.__dict__)
     def initiate_wrappers(self):
         self.estimate_contents()
         self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.mtz_fname, self.phaser_stdin)
-        self.refmac = Refmac(self.workdir, self.mtz_fname, self.phaser.expected_output, self.refmac_stdin)
+        self.refmac = Refmac(self.workdir, self.mtz_fname, self.phaser.expected_output,
+                             self.low_res, self.high_res, self.refmac_stdin)
         self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.mtz_fname, self.solvent,
                              self.nreflections, self.shelxe_keywords)
         self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout,
@@ -109,11 +112,9 @@ EOF""".format(**self.__dict__)
         reindexed_mtz = os.path.join(self.workdir, 'reindex', 'reindex_input_{}.mtz'.format(spacegroup))
         reindex = Reindex(self.workdir, self.mtz_fname, reindexed_mtz, spacegroup)
         reindex.run()
-        self.refmac = Refmac(self.workdir, reindexed_mtz, self.phaser.expected_output, self.refmac_stdin)
-        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, reindexed_mtz,
-                             self.solvent, self.nreflections, self.shelxe_keywords)
-        self.buccaneer = Buccaneer(self.workdir, reindexed_mtz, self.refmac.hklout,
-                                   self.refmac.xyzout, self.buccaneer_keywords)
+        self.refmac.hklin = reindexed_mtz
+        self.shelxe.hklin = reindexed_mtz
+        self.buccaneer.hklin = reindexed_mtz
         return reindex.error
 
     def estimate_contents(self):
@@ -140,3 +141,5 @@ EOF""".format(**self.__dict__)
         self.solvent = solvent
         self.nreflections = mtz_parser.nreflections
         self.spacegroup = mtz_parser.spacegroup_number
+        self.low_res = mtz_parser.reflection_file.resolution_low()
+        self.high_res = mtz_parser.reflection_file.resolution_high()

@@ -5,12 +5,15 @@ from confetti.wrappers.wrapper import Wrapper
 
 
 class Refmac(Wrapper):
-    def __init__(self, workdir, hklin, xyzin, stdin, hklout='refmac_out.mtz', xyzout='refmac_out.pdb'):
+    def __init__(self, workdir, hklin, xyzin, low_res, high_res, stdin, hklout='refmac_out.mtz',
+                 xyzout='refmac_out.pdb'):
         self.hklin = hklin
         self.hklout = os.path.join(workdir, 'refmac', hklout)
         self.xyzin = xyzin
         self.xyzout = os.path.join(workdir, 'refmac', xyzout)
         self.stdin = stdin
+        self.low_res = low_res
+        self.high_res = high_res
         self.logcontents = None
         self.refmac_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'refmac5')
         self.rfactor = "NA"
@@ -28,7 +31,7 @@ class Refmac(Wrapper):
 
     @property
     def keywords(self):
-        return self.stdin
+        return self.stdin.format(**{'LOW_RES': self.low_res, 'HIGH_RES': self.high_res})
 
     @property
     def expected_output(self):
@@ -40,8 +43,8 @@ class Refmac(Wrapper):
 
     @property
     def cmd(self):
-        return "{refmac_exe} hklin {hklin} hklout {hklout} xyzin {xyzin} xyzout {xyzout} <<EOF {stdin} " \
-               "\nEOF".format(**self.__dict__)
+        return "{} hklin {} hklout {} xyzin {} xyzout {} <<EOF {} " \
+               "\nEOF".format(self.refmac_exe, self.hklin, self.hklout, self.xyzin, self.xyzout, self.keywords)
 
     def _run(self):
         self.make_workdir()
