@@ -96,6 +96,13 @@ def Phaser(*args, **kwargs):
     return Phaser(*args, **kwargs)
 
 
+def Reindex(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.reindex.Reindex` instance"""
+    from confetti.wrappers.reindex import Reindex
+
+    return Reindex(*args, **kwargs)
+
+
 def Shelxe(*args, **kwargs):
     """:py:obj:`~confetti.wrappers.shelxe.Shelxe` instance"""
     from confetti.wrappers.shelxe import Shelxe
