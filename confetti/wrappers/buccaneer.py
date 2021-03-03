@@ -83,9 +83,9 @@ class Buccaneer(Wrapper):
             elif "Final results" in line:
                 reached_end = True
             elif reached_end and "R factor" in line:
-                self.rfactor = line.split()[3].rstrip().encode('utf-8')
+                self.rfactor = float(line.split()[3].rstrip())
             elif reached_end and "R free" in line:
-                self.rfree = line.split()[3].rstrip().encode('utf-8')
+                self.rfree = float(line.split()[3].rstrip())
 
         # If there is no rfree or rfactor, there was an error
         if self.rfactor == "NA" or self.rfree == "NA" or self.completeness == "NA":

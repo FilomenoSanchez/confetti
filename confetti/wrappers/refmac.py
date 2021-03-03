@@ -55,20 +55,17 @@ class Refmac(Wrapper):
             if "Final results" in line:
                 reached_end = True
             elif reached_end and "R factor" in line:
-                self.rfactor = line.split()[3].rstrip().encode('utf-8')
-                self.rfactor_delta = (line.split()[2].rstrip().encode('utf-8'), self.rfactor)
+                self.rfactor = float(line.split()[3].rstrip())
+                self.rfactor_delta = (float(line.split()[2].rstrip()), self.rfactor)
             elif reached_end and "R free" in line:
-                self.rfree = line.split()[3].rstrip().encode('utf-8')
-                self.rfree_delta = (line.split()[2].rstrip().encode('utf-8'), self.rfree)
+                self.rfree = float(line.split()[3].rstrip())
+                self.rfree_delta = (float(line.split()[2].rstrip()), self.rfree)
             elif reached_end and "Rms BondLength" in line:
-                self.bondlenght_delta = (
-                    line.split()[2].rstrip().encode('utf-8'), line.split()[3].rstrip().encode('utf-8'))
+                self.bondlenght_delta = (float(line.split()[2].rstrip()), float(line.split()[3].rstrip()))
             elif reached_end and "Rms BondAngle" in line:
-                self.bondangle_delta = (
-                    line.split()[2].rstrip().encode('utf-8'), line.split()[3].rstrip().encode('utf-8'))
+                self.bondangle_delta = (float(line.split()[2].rstrip()), float(line.split()[3].rstrip()))
             elif reached_end and "Rms ChirVolume" in line:
-                self.chirvol_delta = (
-                    line.split()[2].rstrip().encode('utf-8'), line.split()[3].rstrip().encode('utf-8'))
+                self.chirvol_delta = (float(line.split()[2].rstrip()), float(line.split()[3].rstrip()))
 
         # If there is no rfree or rfactor, there was an error
         if self.rfactor == "NA" and self.rfree == "NA":
