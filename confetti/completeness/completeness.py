@@ -102,8 +102,8 @@ EOF""".format(**self.__dict__)
 
     @property
     def summary(self):
-        return (self.reflections_fname, self.experiments_fname, self.ksd_r, self.ksd_phi, self.ksd_theta,
-                self.ksd_r_prime, self.get_ratio_high_density_reflections(),
+        return (self.is_p1, self.reflections_fname, self.experiments_fname, self.ksd_r,
+                self.ksd_phi, self.ksd_theta, self.ksd_r_prime, self.get_ratio_high_density_reflections(),
                 self.get_ratio_high_density_reflections(0.6), self.get_ratio_high_density_reflections(0.9),
                 self.get_volume_ratio())
 
@@ -290,11 +290,14 @@ EOF""".format(**self.__dict__)
 
         self.table['MEANSHIFT_LABELS'] = labels
 
-    def get_cluster_hull(self, cluster_label):
+    def get_cluster_hull_volume(self, cluster_label):
         tmp_df = self.table[self.table['MEANSHIFT_LABELS'] == cluster_label][['A', 'B', 'C']]
-        tmp_df.reset_index(drop=True, inplace=True)
-        hull = ConvexHull(tmp_df)
-        return hull
+        if tmp_df.shape[0] >= 4:
+            tmp_df.reset_index(drop=True, inplace=True)
+            hull = ConvexHull(tmp_df)
+            return hull.volume
+        else:
+            return 0
 
     def get_volume_ratio(self):
         if 'MEANSHIFT_LABELS' not in self.table.columns:
@@ -305,8 +308,8 @@ EOF""".format(**self.__dict__)
         total_hull = ConvexHull(self.table[['A', 'B', 'C']])
         missing_volume = 0
         for clst_label in labels:
-            hull = self.get_cluster_hull(clst_label)
-            missing_volume += hull.volume
+            hull_volume = self.get_cluster_hull_volume(clst_label)
+            missing_volume += hull_volume
 
         return missing_volume / total_hull.volume
 
