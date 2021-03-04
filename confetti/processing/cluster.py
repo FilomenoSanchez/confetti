@@ -92,13 +92,20 @@ class Cluster(object):
             return
 
         self.resolution = dials_resolution.resolution
-        dials_scale = confetti.wrappers.DialsScale(self.workdir, 'symmetrized.refl', 'symmetrized.expt',
-                                                   self.resolution, self.dials_exe, self.nprocs)
-        dials_scale.run()
+        dials_scale = self.scale()
         if dials_scale.error:
             self.logger.error('Cluster_{} failed to scale'.format(self.id))
             self.error = True
             return
+
+        if self.resolution is None and dials_scale.suggested_resolution is not None:
+            self.resolution = dials_scale.suggested_resolution
+            dials_scale = self.scale()
+            if dials_scale.error:
+                self.logger.error('Cluster_{} failed to re-scale to resolution {}'.format(self.id, self.resolution))
+                self.error = True
+                return
+
         self.scaling_stats = dials_scale.summary
 
         dials_merge = confetti.wrappers.DialsMerge(self.workdir, 'scaled.*', self.dials_exe)
@@ -115,3 +122,9 @@ class Cluster(object):
             self.logger.error('Cluster_{} failed to create FREE flag'.format(self.id))
             self.error = True
             return
+
+    def scale(self):
+        dials_scale = confetti.wrappers.DialsScale(self.workdir, 'symmetrized.refl', 'symmetrized.expt',
+                                                   self.resolution, self.dials_exe, self.nprocs)
+        dials_scale.run()
+        return dials_scale

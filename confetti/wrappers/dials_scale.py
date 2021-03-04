@@ -22,6 +22,7 @@ class DialsScale(Wrapper):
         self.std_delta_cchalf = []
         self.cchalf_mean = []
         self.n_deleted_datasets = 0
+        self.suggested_resolution = None
         super(DialsScale, self).__init__(workdir=workdir)
 
     @property
@@ -63,3 +64,5 @@ class DialsScale(Wrapper):
                     self.std_delta_cchalf.append(float(line.rstrip().lstrip().split()[-1]))
                 elif 'Removed datasets:' in line:
                     self.n_deleted_datasets += len(json.loads(line.split(':')[-1].rstrip().lstrip()))
+                elif 'Resolution limit suggested from CC½ fit' in line:
+                    self.suggested_resolution = float(line.rstrip().split()[-1])
