@@ -51,18 +51,18 @@ class DialsMerge(Wrapper):
                 if 'CC half' in line:
                     self.cchalf = float(line.rstrip().lstrip().split()[2])
                 elif 'Rpim(I)' in line:
-                    self.rpim = float(line.split()[-1].rstrip())
+                    self.rpim = float(line.split()[1].rstrip())
                 elif 'Rmeas(I)' in line:
-                    self.rmeas = float(line.split()[-1].rstrip())
+                    self.rmeas = float(line.split()[1].rstrip())
                 elif 'Rmerge(I)' in line:
-                    self.rmerge = float(line.split()[-1].rstrip())
+                    self.rmerge = float(line.split()[1].rstrip())
                 elif 'I/sigma' in line:
-                    self.i_sigma = float(line.split()[-1].rstrip())
+                    self.i_sigma = float(line.split()[1].rstrip())
                 elif 'Multiplicity' in line:
                     self.multiplicity = float(line.split()[-1].rstrip())
                 elif 'Space group number from file:' in line:
                     self.space_group = int(line.rstrip().split()[-1])
                 elif 'Completeness' in line and '|' not in line:
-                    self.completeness = float(line.split()[-1].rstrip())
-                    self.completeness_high = float(line.split()[3].rstrip())
+                    self.completeness = float(line.split()[1].rstrip())
                     self.completeness_low = float(line.split()[2].rstrip())
+                    self.completeness_high = float(line.split()[3].rstrip())
