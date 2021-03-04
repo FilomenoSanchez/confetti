@@ -31,6 +31,7 @@ class MtzDump(Wrapper):
     def _run(self):
         p = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, shell=True)
         self.logcontents = p.communicate()[0]
+        self._parse_logfile()
 
     def _parse_logfile(self):
         for line in self.logcontents.decode().split("\n"):
