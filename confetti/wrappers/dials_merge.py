@@ -59,7 +59,7 @@ class DialsMerge(Wrapper):
                 elif 'I/sigma' in line:
                     self.i_sigma = float(line.split()[1].rstrip())
                 elif 'Multiplicity' in line:
-                    self.multiplicity = float(line.split()[-1].rstrip())
+                    self.multiplicity = float(line.split()[1].rstrip())
                 elif 'Space group number from file:' in line:
                     self.space_group = int(line.rstrip().split()[-1])
                 elif 'Completeness' in line and '|' not in line:
