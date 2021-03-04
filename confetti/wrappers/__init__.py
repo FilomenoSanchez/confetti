@@ -89,6 +89,13 @@ def Buccaneer(*args, **kwargs):
     return Buccaneer(*args, **kwargs)
 
 
+def MtzDump(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.mtzdmp.MtzDump` instance"""
+    from confetti.wrappers.mtzdmp import MtzDump
+
+    return MtzDump(*args, **kwargs)
+
+
 def Phaser(*args, **kwargs):
     """:py:obj:`~confetti.wrappers.phaser.Phaser` instance"""
     from confetti.wrappers.phaser import Phaser

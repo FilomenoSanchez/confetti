@@ -3,6 +3,7 @@ import pickle
 from pyjob import TaskFactory
 import logging
 from confetti.completeness import Completeness
+from confetti.wrappers import MtzDump
 
 
 class CompletenessArray(object):
@@ -64,6 +65,10 @@ class CompletenessArray(object):
     def prepare_scripts(self, expand_to_p1=True, workdir_template='dataset_{}'):
         self.make_workdir()
         for idx, input_fnames in enumerate(zip(self.input_experiments, self.input_reflections), 1):
+            mtz_fname = input_fnames[0].replace('scaled.expt', 'merged.mtz')
+            spacegroup = self.get_spacegroup(mtz_fname)
+            if expand_to_p1 and spacegroup is not None and spacegroup == 1:
+                continue
             workdir = os.path.join(self.workdir, workdir_template.format(idx))
             os.mkdir(workdir)
             dataset = Completeness()
@@ -77,6 +82,13 @@ class CompletenessArray(object):
 
             self.completeness_tables.append(dataset)
             self.scripts.append(dataset.script)
+
+    def get_spacegroup(self, mtz_fname):
+        if os.path.isfile(mtz_fname):
+            mtzdump = MtzDump(mtz_fname)
+            return mtzdump.spacegroup
+        else:
+            return None
 
     def run(self, expand_to_p1=True):
         self.prepare_scripts(expand_to_p1)
