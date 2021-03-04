@@ -86,6 +86,7 @@ class CompletenessArray(object):
     def get_spacegroup(self, mtz_fname):
         if os.path.isfile(mtz_fname):
             mtzdump = MtzDump(mtz_fname)
+            mtzdump.run()
             return mtzdump.spacegroup
         else:
             return None
