@@ -114,7 +114,7 @@ EOF""".format(**self.__dict__)
         reindex.run()
         self.refmac.hklin = reindexed_mtz
         self.shelxe.hklin = reindexed_mtz
-        self.buccaneer.hklin = reindexed_mtz
+        self.buccaneer.mtz_fname = reindexed_mtz
         return reindex.error
 
     def estimate_contents(self):
