@@ -57,7 +57,7 @@ class Wrapper(ABC):
             os.mkdir(self.workdir)
 
     def check_output(self):
-        if not os.path.isfile(self.expected_output):
+        if self.expected_output is not None and not os.path.isfile(self.expected_output):
             self.error = True
 
     def run(self):
