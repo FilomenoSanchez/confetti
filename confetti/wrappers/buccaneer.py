@@ -82,6 +82,8 @@ class Buccaneer(Wrapper):
                 self.completeness = float(line.rstrip().lstrip().split()[-1].replace('%', ''))
             elif "Final results" in line:
                 reached_end = True
+            elif reached_end and '$$' in line:
+                reached_end = False
             elif reached_end and "R factor" in line:
                 self.rfactor = float(line.split()[3].rstrip())
             elif reached_end and "R free" in line:
