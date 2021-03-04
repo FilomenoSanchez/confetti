@@ -94,6 +94,6 @@ class CompletenessArray(object):
         for table in self.completeness_tables:
             if os.path.isfile(table.csv_out_fname):
                 updated_df = Completeness().from_csv(table.csv_out_fname, table.is_p1).table
-                table.table = updated_df.table.copy(True)
+                table.table = updated_df.copy(True)
                 new_tables.append(table)
         self.completeness_tables = new_tables
