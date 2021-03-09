@@ -5,7 +5,7 @@ from confetti.wrappers.wrapper import Wrapper
 
 
 class Cad(Wrapper):
-    def __init__(self, workdir, hklin1, hklin2, hklout, stdin):
+    def __init__(self, workdir, hklin1, hklout, stdin, hklin2=None):
         self.hklin1 = hklin1
         self.hklin2 = hklin2
         self.hklout = os.path.join(workdir, 'cad', hklout)
@@ -28,6 +28,9 @@ class Cad(Wrapper):
 
     @property
     def cmd(self):
+        if self.hklin2 is None:
+            return '{cad_exe} hklin1 {hklin1} hklout {hklout} <<EOF {stdin} \nEOF'.format(**self.__dict__)
+
         return "{cad_exe} hklin1 {hklin1} hklin2 {hklin2} hklout {hklout} <<EOF {stdin} \nEOF".format(**self.__dict__)
 
     def _run(self):

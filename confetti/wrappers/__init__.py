@@ -89,6 +89,13 @@ def Buccaneer(*args, **kwargs):
     return Buccaneer(*args, **kwargs)
 
 
+def Ctruncate(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.ctruncate.Ctruncate` instance"""
+    from confetti.wrappers.ctruncate import Ctruncate
+
+    return Ctruncate(*args, **kwargs)
+
+
 def MtzDump(*args, **kwargs):
     """:py:obj:`~confetti.wrappers.mtzdmp.MtzDump` instance"""
     from confetti.wrappers.mtzdmp import MtzDump
