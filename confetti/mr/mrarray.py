@@ -1,4 +1,5 @@
 import os
+from operator import itemgetter
 import pickle
 from pyjob import TaskFactory
 import logging
@@ -71,7 +72,7 @@ class MrArray(object):
         self.make_workdir()
         idx = 0
         for mtz_fname in self.mtz_list:
-            for searchmodel, rms in zip(searchmodel_list):
+            for searchmodel, rms in zip(map(itemgetter(0), searchmodel_list), map(itemgetter(1), searchmodel_list)):
                 idx += 1
                 mr_run = MrRun(idx, self.workdir, mtz_fname, searchmodel, self.mw, self.phaser_stdin,
                                self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, rms)
