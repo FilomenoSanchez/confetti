@@ -29,8 +29,8 @@ class MrRun(object):
         self.shelxe_keywords = shelxe_keywords
         self.shelxe = None
         self.hklimport = None
-        self.initiate_wrappers()
         self.dials_exe = 'dials'
+        self.error = False
         self.logger = logging.getLogger(__name__)
 
     # ------------------ Class methods ------------------
@@ -74,38 +74,49 @@ EOF""".format(**self.__dict__)
 
     def run(self):
         self.make_workdir()
+        self.initiate_wrappers()
 
-        self.hklimport.run()
-        if self.hklimport.error:
-            self.logger.error('MR-Run {} failed to import mtz file'.format(self.id))
+        if self.error:
+            self.logger.error('MR-Run {} failed to initiate wrappers'.format(self.id))
             return
 
         self.phaser.run()
         if self.phaser.error:
             self.logger.error('MR-Run {} failed to execute phaser'.format(self.id))
+            self.error = True
             return
 
         if self.phaser.output_spacegroup != self.spacegroup:
             reindexed_error = self.reindex_input(self.phaser.output_spacegroup)
             if reindexed_error:
                 self.logger.error('MR-Run {} failed to reindex input'.format(self.id))
+                self.error = True
                 return
 
         self.refmac.run()
         if self.refmac.error:
             self.logger.error('MR-Run {} failed to execute refmac'.format(self.id))
+            self.error = True
             return
 
         self.buccaneer.run()
         if self.buccaneer.error:
             self.logger.error('MR-Run {} failed to execute buccaneer'.format(self.id))
+            self.error = True
 
         self.shelxe.run()
         if self.shelxe.error:
             self.logger.error('MR-Run {} failed to execute shelxe'.format(self.id))
+            self.error = True
 
     def initiate_wrappers(self):
         self.hklimport = HklImport(self.workdir, self.mtz_fname, 'merged_FREE_imported.mtz')
+        self.hklimport.run()
+        if self.hklimport.error:
+            self.error = True
+            self.logger.error('MR-Run {} failed to import mtz file'.format(self.id))
+            return
+
         self.estimate_contents()
         self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.hklimport.hklout, self.phaser_stdin)
         self.refmac = Refmac(self.workdir, self.hklimport.hklout, self.phaser.expected_output,
