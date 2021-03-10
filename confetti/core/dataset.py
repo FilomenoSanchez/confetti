@@ -90,13 +90,14 @@ class Dataset(object):
         self.clusterarray.reload_cluster_sequences()
         self.clusterarray.dump_pickle()
 
-    def prepare_mr(self, mw, searchmodel, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords, rms=0.1):
+    def prepare_mr(self, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords,
+                   rms=0.1):
         mtz_list = self.retrieve_unique_mtzs()
 
-        self.mrarray = MrArray(self.workdir, mtz_list, mw, searchmodel, phaser_stdin, refmac_stdin, buccaneer_keywords,
+        self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
                                shelxe_keywords, rms, self.platform, self.queue_name, self.queue_environment,
                                self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
-        self.mrarray.prepare_scripts()
+        self.mrarray.prepare_scripts(searchmodel_list)
 
     def prepare_completeness(self, expand_to_p1=True):
         input_reflections, input_experiments = self.retrieve_scaled_files()
@@ -107,8 +108,9 @@ class Dataset(object):
         if expand_to_p1:
             self.completeness_array.prepare_scripts(expand_to_p1, 'dataset_{}_p1')
 
-    def post_processing(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords, expand_to_p1=True):
-        self.prepare_mr(mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords)
+    def post_processing(self, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords,
+                        expand_to_p1=True):
+        self.prepare_mr(mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords)
         self.prepare_completeness(expand_to_p1)
 
         if len(self.completeness_array.scripts) == 0 or len(self.mrarray.scripts) == 0:
@@ -150,11 +152,12 @@ class Dataset(object):
         table = []
 
         for mr_run in self.mrarray.mr_runs:
-            table.append((self.id, mr_run.id, *mr_run.summary, mr_run.mtz_fname))
+            table.append((self.id, mr_run.id, mr_run.searchmodel, *mr_run.summary, mr_run.mtz_fname))
 
         self.mr_table = pd.DataFrame(table)
-        self.mr_table.columns = ['DATASET', 'MR_ID', 'LLG', 'TFZ', 'RFZ', 'eLLG', 'RFMC_RFACT', 'RFMC_RFREE',
-                                 'SHELXE_CC', 'SHELXE_ACL', 'BUCC_RFACT', 'BUCC_RFREE', 'BUCC_COMPLETENESS', 'MR_HKLIN']
+        self.mr_table.columns = ['DATASET', 'MR_ID', 'SEARCHMODEL', 'LLG', 'TFZ', 'RFZ', 'eLLG', 'RFMC_RFACT',
+                                 'RFMC_RFREE', 'SHELXE_CC', 'SHELXE_ACL', 'BUCC_RFACT', 'BUCC_RFREE',
+                                 'BUCC_COMPLETENESS', 'MR_HKLIN']
 
     def create_completeness_table(self):
         table = []
@@ -198,9 +201,9 @@ class Dataset(object):
 
         return input_reflections, input_experiments
 
-    def process(self, experiments_fname, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords,
-                sweeps_slice=None, cluster_thresholds=(100, 200, 300, 500, 1000), reset_wavelenght=None,
-                expand_to_p1=True):
+    def process(self, experiments_fname, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
+                shelxe_keywords, sweeps_slice=None, cluster_thresholds=(100, 200, 300, 500, 1000),
+                reset_wavelenght=None, expand_to_p1=True):
         self.make_workdir()
         self.logger.info('Processing sweeps for dataset {}'.format(self.id))
         self.process_sweeps(experiments_fname, sweeps_slice, reset_wavelenght)
@@ -209,4 +212,5 @@ class Dataset(object):
         self.logger.info('Creating cluster table for dataset {}'.format(self.id))
         self.create_cluster_table()
         self.logger.info('Running MR and processing completeness for dataset {}'.format(self.id))
-        self.post_processing(mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords, expand_to_p1)
+        self.post_processing(mw, searchmodel_list, phaser_stdin, refmac_stdin,
+                             buccaneer_keywords, shelxe_keywords, expand_to_p1)

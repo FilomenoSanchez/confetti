@@ -7,8 +7,8 @@ from confetti.mr import MrRun
 
 class MrArray(object):
 
-    def __init__(self, workdir, mtz_list, mw, searchmodel, phaser_stdin, refmac_stdin, buccaneer_keywords,
-                 shelxe_keywords, rms=0.1, platform="sge", queue_name=None, queue_environment=None,
+    def __init__(self, workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
+                 shelxe_keywords, platform="sge", queue_name=None, queue_environment=None,
                  max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.workdir = os.path.join(workdir, 'mr')
         self.pickle_fname = os.path.join(self.workdir, 'mrarray.pckl')
@@ -24,8 +24,6 @@ class MrArray(object):
         self.cleanup = cleanup
         self.mtz_list = mtz_list
         self.mw = mw
-        self.searchmodel = searchmodel
-        self.rms = rms
         self.phaser_stdin = phaser_stdin
         self.refmac_stdin = refmac_stdin
         self.buccaneer_keywords = buccaneer_keywords
@@ -69,19 +67,22 @@ class MrArray(object):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
-    def prepare_scripts(self):
+    def prepare_scripts(self, searchmodel_list):
         self.make_workdir()
-        for idx, mtz_fname in enumerate(self.mtz_list, 1):
-            mr_run = MrRun(idx, self.workdir, mtz_fname, self.searchmodel, self.mw, self.phaser_stdin,
-                           self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, self.rms)
-            mr_run.dials_exe = self.dials_exe
-            mr_run.dump_pickle()
+        idx = 0
+        for mtz_fname in self.mtz_list:
+            for searchmodel, rms in zip(searchmodel_list):
+                idx += 1
+                mr_run = MrRun(idx, self.workdir, mtz_fname, searchmodel, self.mw, self.phaser_stdin,
+                               self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, rms)
+                mr_run.dials_exe = self.dials_exe
+                mr_run.dump_pickle()
 
-            self.mr_runs.append(mr_run)
-            self.scripts.append(mr_run.script)
+                self.mr_runs.append(mr_run)
+                self.scripts.append(mr_run.script)
 
-    def run(self):
-        self.prepare_scripts()
+    def run(self, searchmodel_list):
+        self.prepare_scripts(searchmodel_list)
 
         self.logger.info('Processing mr array')
         with TaskFactory(self.platform, self.scripts, **self._other_task_info) as task:
