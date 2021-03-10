@@ -2,7 +2,7 @@ import os
 import pickle
 import pyjob
 import logging
-from confetti.mr import MtzParser
+from confetti.mr import MtzParser, HklImport
 from confetti.wrappers import Phaser, Refmac, Buccaneer, Shelxe, Reindex
 
 
@@ -28,6 +28,7 @@ class MrRun(object):
         self.buccaneer = None
         self.shelxe_keywords = shelxe_keywords
         self.shelxe = None
+        self.hklimport = None
         self.initiate_wrappers()
         self.dials_exe = 'dials'
         self.logger = logging.getLogger(__name__)
@@ -74,6 +75,11 @@ EOF""".format(**self.__dict__)
     def run(self):
         self.make_workdir()
 
+        self.hklimport.run()
+        if self.hklimport.error:
+            self.logger.error('MR-Run {} failed to import mtz file'.format(self.id))
+            return
+
         self.phaser.run()
         if self.phaser.error:
             self.logger.error('MR-Run {} failed to execute phaser'.format(self.id))
@@ -99,18 +105,19 @@ EOF""".format(**self.__dict__)
             self.logger.error('MR-Run {} failed to execute shelxe'.format(self.id))
 
     def initiate_wrappers(self):
+        self.hklimport = HklImport(self.workdir, self.mtz_fname, 'merged_FREE_imported.mtz')
         self.estimate_contents()
-        self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.mtz_fname, self.phaser_stdin)
-        self.refmac = Refmac(self.workdir, self.mtz_fname, self.phaser.expected_output,
+        self.phaser = Phaser(self.workdir, self.ncopies, self.mw, self.hklimport.hklout, self.phaser_stdin)
+        self.refmac = Refmac(self.workdir, self.hklimport.hklout, self.phaser.expected_output,
                              self.low_res, self.high_res, self.refmac_stdin)
-        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.mtz_fname, self.solvent,
+        self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.hklimport.hklout, self.solvent,
                              self.nreflections, self.shelxe_keywords)
-        self.buccaneer = Buccaneer(self.workdir, self.mtz_fname, self.refmac.hklout,
+        self.buccaneer = Buccaneer(self.workdir, self.hklimport.hklout, self.refmac.hklout,
                                    self.refmac.xyzout, self.buccaneer_keywords)
 
     def reindex_input(self, spacegroup):
         reindexed_mtz = os.path.join(self.workdir, 'reindex', 'reindex_input_{}.mtz'.format(spacegroup))
-        reindex = Reindex(self.workdir, self.mtz_fname, reindexed_mtz, spacegroup)
+        reindex = Reindex(self.workdir, self.hklimport.hklout, reindexed_mtz, spacegroup)
         reindex.run()
         self.refmac.hklin = reindexed_mtz
         self.shelxe.hklin = reindexed_mtz
@@ -118,7 +125,7 @@ EOF""".format(**self.__dict__)
         return reindex.error
 
     def estimate_contents(self):
-        mtz_parser = MtzParser(self.mtz_fname)
+        mtz_parser = MtzParser(self.hklimport.hklout)
         mtz_parser.parse()
         cell_volume = mtz_parser.reflection_file.cell.volume_per_image()
 
