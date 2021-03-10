@@ -90,11 +90,11 @@ class Dataset(object):
         self.clusterarray.reload_cluster_sequences()
         self.clusterarray.dump_pickle()
 
-    def prepare_mr(self, mw, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords):
+    def prepare_mr(self, mw, searchmodel, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords, rms=0.1):
         mtz_list = self.retrieve_unique_mtzs()
 
-        self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
-                               shelxe_keywords, self.platform, self.queue_name, self.queue_environment,
+        self.mrarray = MrArray(self.workdir, mtz_list, mw, searchmodel, phaser_stdin, refmac_stdin, buccaneer_keywords,
+                               shelxe_keywords, rms, self.platform, self.queue_name, self.queue_environment,
                                self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
         self.mrarray.prepare_scripts()
 

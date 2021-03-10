@@ -15,10 +15,12 @@ class PhaserScores(Enum):
 
 
 class Phaser(Wrapper):
-    def __init__(self, workdir, ncopies, mw, mtz_fname, stdin, root='phaser_out'):
+    def __init__(self, workdir, mtz_fname, ncopies, mw, searchmodel, rms, stdin, root='phaser_out'):
         self.ncopies = ncopies
         self.mw = mw
         self.mtz_fname = mtz_fname
+        self.searchmodel = searchmodel
+        self.rms = rms
         self.stdin = stdin
         self.root = root
         self.logcontents = None
@@ -44,7 +46,8 @@ class Phaser(Wrapper):
 
     @property
     def keywords(self):
-        return self.stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw, 'HKLIN': self.mtz_fname})
+        return self.stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw, 'HKLIN': self.mtz_fname,
+                                    'RMS': self.rms, 'SEARCHMODEL': self.searchmodel})
 
     @property
     def expected_output(self):
