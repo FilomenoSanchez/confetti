@@ -68,12 +68,12 @@ class Dataset(object):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
-    def process_sweeps(self, experiments_fname, sweeps_slice=None, reset_wavelenght=None):
+    def process_sweeps(self, experiments_fname, sweeps_slice=None, reset_wavelenght=None, discard_sweeps_outside=False):
         self.sweeparray = SweepArray(experiments_fname, self.workdir, self.platform, self.queue_name,
                                      self.queue_environment, self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
 
         if sweeps_slice is not None:
-            self.sweeparray.slice_sweeps(sweeps_slice)
+            self.sweeparray.slice_sweeps(sweeps_slice, discard_sweeps_outside)
         self.sweeparray.process_sweeps()
         if reset_wavelenght is not None:
             self.sweeparray.reset_wavelength(reset_wavelenght)
@@ -203,10 +203,10 @@ class Dataset(object):
 
     def process(self, experiments_fname, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
                 shelxe_keywords, sweeps_slice=None, cluster_thresholds=(100, 200, 300, 500, 1000),
-                reset_wavelenght=None, expand_to_p1=True):
+                reset_wavelenght=None, expand_to_p1=True, discard_sweeps_outside=False):
         self.make_workdir()
         self.logger.info('Processing sweeps for dataset {}'.format(self.id))
-        self.process_sweeps(experiments_fname, sweeps_slice, reset_wavelenght)
+        self.process_sweeps(experiments_fname, sweeps_slice, reset_wavelenght, discard_sweeps_outside)
         self.logger.info('Processing clusters for dataset {}'.format(self.id))
         self.process_clusters(cluster_thresholds)
         self.logger.info('Creating cluster table for dataset {}'.format(self.id))

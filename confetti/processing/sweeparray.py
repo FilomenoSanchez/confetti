@@ -98,10 +98,13 @@ class SweepArray(object):
                 experiment.beam.set_wavelength(wavelength)
             sweep_experiments.data.as_file(sweep.integrated_experiments)
 
-    def slice_sweeps(self, slice):
+    def slice_sweeps(self, slice, discard_sweeps_outside=False):
         new_imagesets = []
         for imageset in self.imported_expt.imagesets:
-            new_imagesets.append(imageset[slice])
+            if discard_sweeps_outside and len(imageset) < slice.stop:
+                continue
+            elif len(imageset[slice]) != 0:
+                new_imagesets.append(imageset[slice])
         self.imported_expt.imagesets = tuple(new_imagesets)
 
     def reload_sweeps(self):
