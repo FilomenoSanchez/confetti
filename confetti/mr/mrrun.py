@@ -119,13 +119,21 @@ EOF""".format(**self.__dict__)
         reindexed_mtz = os.path.join(self.workdir, 'reindex', 'reindex_input_{}.mtz'.format(spacegroup))
         reindex = Reindex(self.workdir, self.hklimport.hklout, reindexed_mtz, spacegroup)
         reindex.run()
+        self.estimate_contents(reindexed_mtz)
         self.refmac.hklin = reindexed_mtz
+        self.refmac.high_res = self.high_res
+        self.refmac.low_res = self.low_res
         self.shelxe.hklin = reindexed_mtz
+        self.shelxe.solvent = self.solvent
+        self.shelxe.nreflections = self.nreflections
         self.buccaneer.mtz_fname = reindexed_mtz
         return reindex.error
 
-    def estimate_contents(self):
-        mtz_parser = MtzParser(self.hklimport.hklout)
+    def estimate_contents(self, hklin=None):
+        if hklin is None:
+            mtz_parser = MtzParser(self.hklimport.hklout)
+        else:
+            mtz_parser = MtzParser(hklin)
         mtz_parser.parse()
         cell_volume = mtz_parser.reflection_file.cell.volume_per_image()
 
