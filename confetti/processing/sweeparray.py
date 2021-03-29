@@ -107,6 +107,19 @@ class SweepArray(object):
                 new_imagesets.append(imageset[slice])
         self.imported_expt.imagesets = tuple(new_imagesets)
 
+    def splice_sweeps(self, splice_size, gap, discard_smaller_sweeps=False):
+        new_imagesets = []
+        for imageset in self.imported_expt.imagesets:
+            if discard_smaller_sweeps and len(imageset) < splice_size:
+                continue
+            for index in range(0, len(imageset), gap+splice_size):
+                new_imageset = imageset[index:index + splice_size]
+                if discard_smaller_sweeps and len(new_imageset) < splice_size:
+                    continue
+                elif len(new_imageset) != 0:
+                    new_imagesets.append(new_imageset)
+        self.imported_expt.imagesets = tuple(new_imagesets)
+
     def reload_sweeps(self):
         new_sweeps = []
         for sweep in self.sweeps:
