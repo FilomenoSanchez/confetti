@@ -1,5 +1,6 @@
 import os
 import pickle
+import random
 from pyjob import TaskFactory
 import logging
 from confetti.io import Experiments
@@ -98,23 +99,27 @@ class SweepArray(object):
                 experiment.beam.set_wavelength(wavelength)
             sweep_experiments.data.as_file(sweep.integrated_experiments)
 
-    def slice_sweeps(self, slice, discard_sweeps_outside=False):
+    def slice_sweeps(self, slice_size, discard_sweeps_outside=False, random_start=False):
         new_imagesets = []
         for imageset in self.imported_expt.imagesets:
             if discard_sweeps_outside and len(imageset) < slice.stop:
                 continue
             elif len(imageset[slice]) != 0:
-                new_imagesets.append(imageset[slice])
+                if not random_start:
+                    new_imagesets.append(imageset[:slice_size])
+                else:
+                    start = random.randint(0, len(imageset) - slice_size)
+                    new_imagesets.append(imageset[start:start + slice_size])
         self.imported_expt.imagesets = tuple(new_imagesets)
 
-    def splice_sweeps(self, splice_size, gap, discard_smaller_sweeps=False):
+    def divide_sweeps(self, slice_size, gap, discard_smaller_sweeps=False):
         new_imagesets = []
         for imageset in self.imported_expt.imagesets:
-            if discard_smaller_sweeps and len(imageset) < splice_size:
+            if discard_smaller_sweeps and len(imageset) < slice_size:
                 continue
-            for index in range(0, len(imageset), gap+splice_size):
-                new_imageset = imageset[index:index + splice_size]
-                if discard_smaller_sweeps and len(new_imageset) < splice_size:
+            for index in range(0, len(imageset), gap+slice_size):
+                new_imageset = imageset[index:index + slice_size]
+                if discard_smaller_sweeps and len(new_imageset) < slice_size:
                     continue
                 elif len(new_imageset) != 0:
                     new_imagesets.append(new_imageset)
