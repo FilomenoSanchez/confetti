@@ -51,7 +51,7 @@ class Results(object):
                     for line in fhandle:
                         if 'completeness = Completeness().from_raw_data' in line:
                             line = line[43:].rstrip().replace("'", '"').replace('(', '[').replace(')', ']') \
-                                .replace('True', '"true"').replace('False', ''"false"'')
+                                .replace('True', 'true').replace('False', 'false')
                             input_args = json.loads(line)
                             reflections_fname = input_args[1]
                             experiments_fname = input_args[0]
@@ -66,6 +66,7 @@ class Results(object):
         self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'IS_P1', 'SCALED_REFL', 'SCALED_EXPT', 'KSD_r',
                                            'KSD_phi', 'KSD_theta', 'KSD_r_prime', 'R_RFLmissing_0.3',
                                            'R_RFLmissing_0.6', 'R_RFLmissing_0.9', 'R_VOLUME']
+        self.completeness_table.drop('DATASET', 1, inplace=True)
 
     def recover_clusters(self):
         if self.clusterarray_pickle is None:
@@ -114,6 +115,7 @@ class Results(object):
         self.mr_table.columns = ['DATASET', 'MR_ID', 'SEARCHMODEL', 'LLG', 'TFZ', 'RFZ', 'eLLG', 'RFMC_RFACT',
                                  'RFMC_RFREE', 'SHELXE_CC', 'SHELXE_ACL', 'BUCC_RFACT', 'BUCC_RFREE',
                                  'BUCC_COMPLETENESS', 'MR_HKLIN']
+        self.mr_table.drop('DATASET', 1, inplace=True)
 
     def process(self):
         self.recover_mr_results()
@@ -125,5 +127,6 @@ class Results(object):
             return
 
         self.table = self.cluster_table.merge(self.mr_table, left_on='CLST_HKLOUT', right_on='MR_HKLIN', how='inner')
-        self.table = self.table.merge(self.completeness_table, left_on='CLST_SCALED_REFL',
-                                      right_on='SCALED_REFL', how='inner')
+        self.table = self.table.merge(self.completeness_table, left_on='CLST_SCALED_REFL', right_on='SCALED_REFL',
+                                      how='inner')
+        self.table.reset_index(drop=True, inplace=True)
