@@ -68,12 +68,12 @@ class Dataset(object):
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
-    def process_sweeps(self, experiments_fname, sweeps_slice=None, reset_wavelenght=None, discard_sweeps_outside=False):
+    def process_sweeps(self, experiments_fname, sweep_slice_style=None, reset_wavelenght=None, slice_args=None):
         self.sweeparray = SweepArray(experiments_fname, self.workdir, self.platform, self.queue_name,
                                      self.queue_environment, self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
 
-        if sweeps_slice is not None:
-            self.sweeparray.slice_sweeps(sweeps_slice, discard_sweeps_outside)
+        if sweep_slice_style is not None:
+            getattr(self.sweeparray, sweep_slice_style)(*slice_args)
         self.sweeparray.process_sweeps()
         if reset_wavelenght is not None:
             self.sweeparray.reset_wavelength(reset_wavelenght)
@@ -202,11 +202,11 @@ class Dataset(object):
         return input_reflections, input_experiments
 
     def process(self, experiments_fname, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
-                shelxe_keywords, sweeps_slice=None, cluster_thresholds=(100, 200, 300, 500, 1000),
-                reset_wavelenght=None, expand_to_p1=True, discard_sweeps_outside=False):
+                shelxe_keywords, sweep_slice_style=None, cluster_thresholds=(100, 200, 300, 500, 1000),
+                reset_wavelenght=None, expand_to_p1=True, slice_args=None):
         self.make_workdir()
         self.logger.info('Processing sweeps for dataset {}'.format(self.id))
-        self.process_sweeps(experiments_fname, sweeps_slice, reset_wavelenght, discard_sweeps_outside)
+        self.process_sweeps(experiments_fname, sweep_slice_style, reset_wavelenght, slice_args)
         self.logger.info('Processing clusters for dataset {}'.format(self.id))
         self.process_clusters(cluster_thresholds)
         self.logger.info('Creating cluster table for dataset {}'.format(self.id))
