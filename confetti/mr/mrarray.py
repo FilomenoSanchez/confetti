@@ -93,7 +93,11 @@ class MrArray(object):
     def reload_mrruns(self):
         new_mr_runs = []
         for mr_run in self.mr_runs:
-            if os.path.isfile(mr_run.pickle_fname):
-                with open(mr_run.pickle_fname, 'rb') as fhandle:
-                    new_mr_runs.append(pickle.load(fhandle))
+            try:
+                if os.path.isfile(mr_run.pickle_fname):
+                    with open(mr_run.pickle_fname, 'rb') as fhandle:
+                        new_mr_runs.append(pickle.load(fhandle))
+            except MemoryError:
+                self.logger.error('Cannot load pickle {}'.format(mr_run.pickle_fname))
+                continue
         self.mr_runs = new_mr_runs

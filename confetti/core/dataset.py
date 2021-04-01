@@ -151,7 +151,8 @@ class Dataset(object):
         table = []
 
         for mr_run in self.mrarray.mr_runs:
-            table.append((self.id, mr_run.id, mr_run.searchmodel, *mr_run.summary, mr_run.mtz_fname))
+            if mr_run.shelxe is not None and mr_run.shelxe.logcontents is not None:
+                table.append((self.id, mr_run.id, mr_run.searchmodel, *mr_run.summary, mr_run.mtz_fname))
 
         self.mr_table = pd.DataFrame(table)
         self.mr_table.columns = ['DATASET', 'MR_ID', 'SEARCHMODEL', 'LLG', 'TFZ', 'RFZ', 'eLLG', 'RFMC_RFACT',
