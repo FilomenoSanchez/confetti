@@ -12,7 +12,6 @@ class Cluster(object):
         self.error = False
         self.nprocs = nprocs
         self.clustering_threshold = clustering_threshold
-        self.dials_exe = 'dials'
         self.logger = logging.getLogger(__name__)
         self.sweeps_dir = sweeps_dir
         self.experiments_identifiers = []

@@ -1,15 +1,12 @@
 import os
-import subprocess
+from dials.command_line.export import run
 from confetti.wrappers.wrapper import Wrapper
 
 
 class DialsExport(Wrapper):
 
-    def __init__(self, workdir, experiments_fname, reflections_fname, intensity='sum', mtz_hklout='integrated.mtz',
-                 dials_exe='dials'):
-        self.dials_exe = dials_exe
-        self.experiments_fname = experiments_fname
-        self.reflections_fname = reflections_fname
+    def __init__(self, workdir, intensity='sum', mtz_hklout='integrated.mtz'):
+        self.input_fnames = 'refined.expt integrated.refl'
         self.intensity = intensity
         self.mtz_hklout = os.path.join(workdir, mtz_hklout)
         super(DialsExport, self).__init__(workdir=workdir)
@@ -28,12 +25,10 @@ class DialsExport(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.export {experiments_fname} {reflections_fname} intensity={intensity} " \
-               "mtz.hklout={mtz_hklout}".format(**self.__dict__).split()
+        return "{input_fnames} intensity={intensity} mtz.hklout={mtz_hklout}".format(**self.__dict__).split()
 
     def _run(self):
-        p = subprocess.Popen(self.cmd)
-        p.communicate()
+        run(self.cmd)
 
     def _parse_logfile(self):
         pass

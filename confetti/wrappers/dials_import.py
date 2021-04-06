@@ -1,12 +1,11 @@
 import os
-import subprocess
+from dials.command_line.dials_import import run
 from confetti.wrappers.wrapper import Wrapper
 
 
 class DialsImport(Wrapper):
 
-    def __init__(self, workdir, input_fnames, dials_exe='dials'):
-        self.dials_exe = dials_exe
+    def __init__(self, workdir, input_fnames):
         self.input_fnames = input_fnames
         super(DialsImport, self).__init__(workdir=workdir)
 
@@ -24,11 +23,10 @@ class DialsImport(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.import {input_fnames}".format(**self.__dict__).split()
+        return self.input_fnames.split()
 
     def _run(self):
-        p = subprocess.Popen(self.cmd)
-        p.communicate()
+        run(self.cmd)
 
     def _parse_logfile(self):
         pass

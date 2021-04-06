@@ -83,7 +83,6 @@ EOF""".format(**self.__dict__)
 
             cluster = Cluster(idx, self.workdir, self.sweeps_dir, self.clustering_threshold, self.nprocs)
             cluster.exclude_sweeps = self.exclude_sweeps
-            cluster.dials_exe = self.dials_exe
             self.logger.info('Processing Cluster_{}'.format(idx))
             cluster.process()
             self.clusters.append(cluster)

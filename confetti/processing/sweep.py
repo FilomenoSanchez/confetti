@@ -74,44 +74,42 @@ EOF""".format(**self.__dict__)
         self.make_workdir()
         os.chdir(self.workdir)
 
-        dials_import = confetti.wrappers.DialsImport(self.workdir, ' '.join(self.image_fnames), self.dials_exe)
+        dials_import = confetti.wrappers.DialsImport(self.workdir, ' '.join(self.image_fnames))
         dials_import.run()
         if dials_import.error:
             self.logger.error('Sweep {} failed trying to import image data'.format(self.id))
             self.error = True
             return
 
-        dials_find_spots = confetti.wrappers.DialsFindSpots(self.workdir, 'imported.expt', self.dials_exe)
+        dials_find_spots = confetti.wrappers.DialsFindSpots(self.workdir)
         dials_find_spots.run()
         if dials_find_spots.error:
             self.logger.error('Sweep {} failed trying to find spots'.format(self.id))
             self.error = True
             return
 
-        dials_index = confetti.wrappers.DialsIndex(self.workdir, 'imported.expt', 'strong.refl', self.dials_exe)
+        dials_index = confetti.wrappers.DialsIndex(self.workdir)
         dials_index.run()
         if dials_index.error:
             self.logger.error("Sweep {} failed in initial indexing".format(self.id))
             self.error = True
             return
 
-        dials_refine = confetti.wrappers.DialsRefine(self.workdir, 'indexed.expt', 'indexed.refl',
-                                                     dials_exe=self.dials_exe)
+        dials_refine = confetti.wrappers.DialsRefine(self.workdir)
         dials_refine.run()
         if dials_refine.error:
             self.logger.error("Sweep {} failed in refinement".format(self.id))
             self.error = True
             return
 
-        dials_integrate = confetti.wrappers.DialsIntegrate(self.workdir, 'refined.expt', 'indexed.refl', self.dials_exe)
+        dials_integrate = confetti.wrappers.DialsIntegrate(self.workdir)
         dials_integrate.run()
         if dials_integrate.error:
             self.logger.error("Sweep {} failed during integration".format(self.id))
             self.error = True
             return
 
-        dials_export = confetti.wrappers.DialsExport(self.workdir, 'refined.expt', 'integrated.refl',
-                                                     dials_exe=self.dials_exe)
+        dials_export = confetti.wrappers.DialsExport(self.workdir)
         dials_export.run()
         if dials_export.error:
             self.logger.error("Sweep {} failed during MTZ export".format(self.id))

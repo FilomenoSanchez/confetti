@@ -1,14 +1,12 @@
 import os
-import subprocess
+from dials.command_line.index import run
 from confetti.wrappers.wrapper import Wrapper
 
 
 class DialsIndex(Wrapper):
 
-    def __init__(self, workdir, experiments_fname, reflections_fname, dials_exe='dials'):
-        self.dials_exe = dials_exe
-        self.experiments_fname = experiments_fname
-        self.reflections_fname = reflections_fname
+    def __init__(self, workdir):
+        self.input_fnames = 'imported.expt strong.refl'
         super(DialsIndex, self).__init__(workdir=workdir)
 
     @property
@@ -25,11 +23,10 @@ class DialsIndex(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.index {experiments_fname} {reflections_fname}".format(**self.__dict__).split()
+        return self.input_fnames.split()
 
     def _run(self):
-        p = subprocess.Popen(self.cmd)
-        p.communicate()
+        run(self.cmd)
 
     def _parse_logfile(self):
         pass

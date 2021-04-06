@@ -1,13 +1,12 @@
 import os
-import subprocess
+from dials.command_line.find_spots import run
 from confetti.wrappers.wrapper import Wrapper
 
 
 class DialsFindSpots(Wrapper):
 
-    def __init__(self, workdir, experiments_fname, dials_exe='dials'):
-        self.dials_exe = dials_exe
-        self.experiments_fname = experiments_fname
+    def __init__(self, workdir):
+        self.experiments_fname = ['imported.expt']
         super(DialsFindSpots, self).__init__(workdir=workdir)
 
     @property
@@ -24,11 +23,10 @@ class DialsFindSpots(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.find_spots {experiments_fname}".format(**self.__dict__).split()
+        return self.experiments_fname
 
     def _run(self):
-        p = subprocess.Popen(self.cmd)
-        p.communicate()
+        run(self.cmd)
 
     def _parse_logfile(self):
         pass

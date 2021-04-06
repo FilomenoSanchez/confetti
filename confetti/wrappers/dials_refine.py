@@ -1,15 +1,12 @@
 import os
-import subprocess
+from dials.commnad_line.refine import run
 from confetti.wrappers.wrapper import Wrapper
 
 
 class DialsRefine(Wrapper):
 
-    def __init__(self, workdir, experiments_fname, reflections_fname, scan_varying='false', outlier_algorithm='tukey',
-                 dials_exe='dials'):
-        self.dials_exe = dials_exe
-        self.experiments_fname = experiments_fname
-        self.reflections_fname = reflections_fname
+    def __init__(self, workdir, scan_varying='false', outlier_algorithm='tukey'):
+        self.input_fnames = 'indexed.expt indexed.refl'
         self.scan_varying = scan_varying
         self.outlier_algorithm = outlier_algorithm
         super(DialsRefine, self).__init__(workdir=workdir)
@@ -28,12 +25,11 @@ class DialsRefine(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.refine {experiments_fname} {reflections_fname} scan_varying={scan_varying} " \
+        return "{input_fnames} scan_varying={scan_varying} " \
                "outlier.algorithm={outlier_algorithm}".format(**self.__dict__).split()
 
     def _run(self):
-        p = subprocess.Popen(self.cmd)
-        p.communicate()
+        run(self.cmd)
 
     def _parse_logfile(self):
         pass
