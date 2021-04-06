@@ -70,7 +70,7 @@ class Cluster(object):
         self.make_workdir()
         os.chdir(self.workdir)
 
-        dials_cosym = confetti.wrappers.DialsCosym(self.workdir, self.input_fnames, self.dials_exe,
+        dials_cosym = confetti.wrappers.DialsCosym(self.workdir, self.input_fnames,
                                                    self.clustering_threshold, self.nprocs)
         dials_cosym.run()
         self.experiments_identifiers = dials_cosym.cluster_experiment_identifiers
@@ -84,7 +84,7 @@ class Cluster(object):
             self.error = True
             return
 
-        dials_resolution = confetti.wrappers.DialsEstimateResolution(self.workdir, 'symmetrized.*', self.dials_exe)
+        dials_resolution = confetti.wrappers.DialsEstimateResolution(self.workdir)
         dials_resolution.run()
         if dials_resolution.error:
             self.logger.error('Cluster_{} failed to estimate resolution'.format(self.id))
@@ -108,7 +108,7 @@ class Cluster(object):
 
         self.scaling_stats = dials_scale.summary
 
-        dials_merge = confetti.wrappers.DialsMerge(self.workdir, 'scaled.*', self.dials_exe)
+        dials_merge = confetti.wrappers.DialsMerge(self.workdir)
         dials_merge.run()
         if dials_merge.error:
             self.logger.error('Cluster_{} failed to merge'.format(self.id))
@@ -124,7 +124,6 @@ class Cluster(object):
             return
 
     def scale(self):
-        dials_scale = confetti.wrappers.DialsScale(self.workdir, 'symmetrized.refl', 'symmetrized.expt',
-                                                   self.resolution, self.dials_exe, self.nprocs)
+        dials_scale = confetti.wrappers.DialsScale(self.workdir, self.resolution, self.nprocs)
         dials_scale.run()
         return dials_scale

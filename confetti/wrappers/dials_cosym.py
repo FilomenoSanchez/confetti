@@ -1,13 +1,12 @@
 import os
-import subprocess
 import json
+from dials.command_line.cosym import run
 from confetti.wrappers.wrapper import Wrapper
 
 
 class DialsCosym(Wrapper):
 
-    def __init__(self, workdir, input_fnames, dials_exe='dials', clustering_threshold=5000, nprocs=1):
-        self.dials_exe = dials_exe
+    def __init__(self, workdir, input_fnames, clustering_threshold=5000, nprocs=1):
         self.input_fnames = input_fnames
         self.clustering_threshold = clustering_threshold
         self.nprocs = nprocs
@@ -25,16 +24,15 @@ class DialsCosym(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.cosym {input_fnames} unit_cell_clustering.threshold={clustering_threshold}" \
-               " nproc={nprocs}".format(**self.__dict__)
+        return "{input_fnames} unit_cell_clustering.threshold={clustering_threshold}" \
+               " nproc={nprocs}".format(**self.__dict__).split()
 
     @property
     def logfile(self):
         return os.path.join(self.workdir, 'dials.cosym.log')
 
     def _run(self):
-        p = subprocess.Popen(self.cmd, shell=True)
-        p.communicate()
+        run(self.cmd)
 
     def _parse_logfile(self):
         with open(self.logfile, 'r') as fhandle:

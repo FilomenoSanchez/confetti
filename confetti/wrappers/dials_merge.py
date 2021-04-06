@@ -1,13 +1,12 @@
 import os
-import subprocess
+from dials.command_line.merge import run
 from confetti.wrappers.wrapper import Wrapper
 
 
 class DialsMerge(Wrapper):
 
-    def __init__(self, workdir, input_fnames, dials_exe='dials'):
-        self.dials_exe = dials_exe
-        self.input_fnames = input_fnames
+    def __init__(self, workdir):
+        self.input_fnames = 'scaled.expt scaled.refl'
         self.rpim = 'NA'
         self.rmeas = 'NA'
         self.rmerge = 'NA'
@@ -35,15 +34,14 @@ class DialsMerge(Wrapper):
 
     @property
     def cmd(self):
-        return "{dials_exe}.merge {input_fnames}".format(**self.__dict__)
+        return self.input_fnames.split()
 
     @property
     def logfile(self):
         return os.path.join(self.workdir, 'dials.merge.log')
 
     def _run(self):
-        p = subprocess.Popen(self.cmd, shell=True)
-        p.communicate()
+        run(self.cmd)
 
     def _parse_logfile(self):
         with open(self.logfile, 'r') as fhandle:
