@@ -1,5 +1,5 @@
 import os
-from dials.commnad_line.refine import run
+from dials.command_line.refine import run
 from confetti.wrappers.wrapper import Wrapper
 
 
