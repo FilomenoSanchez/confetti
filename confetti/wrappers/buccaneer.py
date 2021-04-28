@@ -16,7 +16,7 @@ class Buccaneer(Wrapper):
         self.is_fragment = is_fragment
         self.seqin = seqin
         self.solvent = solvent
-        self.hklin = os.path.join(self.workdir, 'cad', 'buccaneer_input.mtz')
+        self.hklin = os.path.join(workdir, 'cad', 'buccaneer_input.mtz')
         self.logcontents = None
         self.rfactor = "NA"
         self.rfree = "NA"
