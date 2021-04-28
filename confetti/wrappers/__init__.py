@@ -19,6 +19,13 @@ def DialsEstimateResolution(*args, **kwargs):
     return DialsEstimateResolution(*args, **kwargs)
 
 
+def Parrot(*args, **kwargs):
+    """:py:obj:`~confetti.wrappers.parrot.Parrot` instance"""
+    from confetti.wrappers.parrot import Parrot
+
+    return Parrot(*args, **kwargs)
+
+
 def DialsMerge(*args, **kwargs):
     """:py:obj:`~confetti.wrappers.dials_merge.DialsMerge` instance"""
     from confetti.wrappers.dials_merge import DialsMerge
