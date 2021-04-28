@@ -17,12 +17,15 @@ class DialsMerge(Wrapper):
         self.completeness_low = 'NA'
         self.completeness_high = 'NA'
         self.space_group = 'NA'
+        self.resolution_low = 'NA'
+        self.resolution_high = 'NA'
         super(DialsMerge, self).__init__(workdir=workdir)
 
     @property
     def summary(self):
         return (self.rpim, self.rmeas, self.rmerge, self.cchalf, self.i_sigma, self.multiplicity,
-                self.completeness, self.completeness_low, self.completeness_high, self.space_group)
+                self.completeness, self.resolution_low, self.resolution_high, self.completeness_low,
+                self.completeness_high, self.space_group)
 
     @property
     def keywords(self):
@@ -60,6 +63,9 @@ class DialsMerge(Wrapper):
                     self.multiplicity = float(line.split()[1].rstrip())
                 elif 'Space group number from file:' in line:
                     self.space_group = int(line.rstrip().split()[-1])
+                elif 'Resolution range:' in line:
+                    self.resolution_low = float(line.split()[-2].rstrip().lstrip())
+                    self.resolution_high = float(line.split()[-1].rstrip().lstrip())
                 elif 'Completeness' in line and '|' not in line:
                     self.completeness = float(line.split()[1].rstrip())
                     self.completeness_low = float(line.split()[2].rstrip())

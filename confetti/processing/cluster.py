@@ -38,8 +38,8 @@ class Cluster(object):
     @property
     def summary(self):
         return (self.id, self.clustering_threshold, self.nclusters, self.workdir, self.hklout,
-                self.scaled_refl, self.scaled_expt, self.resolution, *self.scaling_stats,
-                *self.merging_stats, tuple(sorted(self.experiments_identifiers)))
+                self.scaled_refl, self.scaled_expt, *self.scaling_stats, *self.merging_stats,
+                tuple(sorted(self.experiments_identifiers)))
 
     @cached_property
     def input_fnames(self):

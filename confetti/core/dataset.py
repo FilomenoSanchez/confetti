@@ -142,10 +142,10 @@ class Dataset(object):
         self.cluster_table = pd.DataFrame(table)
         self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
                                       'CLST_WORKDIR', 'CLST_HKLOUT', 'CLST_SCALED_REFL', 'CLST_SCALED_EXPT',
-                                      'RESOLUTION', 'CCHALF_MEAN', 'DELTA_CCHALF_MEAN', 'CCHALF_STD',
-                                      'SCALE_N_DELETED_DATASETS', 'RPIM', 'RMEAS', 'RMERGE', 'CCHALF',
-                                      'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS', 'COMPLETENESS_LOW',
-                                      'COMPLETENESS_HIGH', 'SPACE_GROUP', 'EXPT_IDS', 'SWEEPS']
+                                      'CCHALF_MEAN', 'DELTA_CCHALF_MEAN', 'CCHALF_STD', 'SCALE_N_DELETED_DATASETS',
+                                      'RPIM', 'RMEAS', 'RMERGE', 'CCHALF', 'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS',
+                                      'RESOLUTION_LOW', 'RESOLUTION_HIGH', 'COMPLETENESS_LOW', 'COMPLETENESS_HIGH',
+                                      'SPACE_GROUP', 'EXPT_IDS', 'SWEEPS']
 
     def create_mr_table(self):
         table = []

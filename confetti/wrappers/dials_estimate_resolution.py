@@ -6,7 +6,7 @@ from confetti.wrappers.wrapper import Wrapper
 class DialsEstimateResolution(Wrapper):
 
     def __init__(self, workdir):
-        self.input_fnames =  'symmetrized.expt symmetrized.refl'
+        self.input_fnames = 'symmetrized.expt symmetrized.refl'
         self.resolution = None
         super(DialsEstimateResolution, self).__init__(workdir=workdir)
 
