@@ -4,11 +4,13 @@ import pickle
 from pyjob import TaskFactory
 import logging
 from confetti.mr import MrRun
+from Bio import SeqIO
+from Bio.SeqUtils import molecular_weight
 
 
 class MrArray(object):
 
-    def __init__(self, workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
+    def __init__(self, workdir, mtz_list, fasta_fname, phaser_stdin, refmac_stdin, buccaneer_keywords,
                  shelxe_keywords, platform="sge", queue_name=None, queue_environment=None,
                  max_concurrent_nprocs=1, cleanup=False, dials_exe='dials'):
         self.workdir = os.path.join(workdir, 'mr')
@@ -24,7 +26,8 @@ class MrArray(object):
         self.dials_exe = dials_exe
         self.cleanup = cleanup
         self.mtz_list = mtz_list
-        self.mw = mw
+        self.fasta_fname = fasta_fname
+        self.mw = self.calculate_mw(fasta_fname)
         self.phaser_stdin = phaser_stdin
         self.refmac_stdin = refmac_stdin
         self.buccaneer_keywords = buccaneer_keywords
@@ -57,6 +60,19 @@ class MrArray(object):
 
         return info
 
+    # ------------------ Static methods ------------------
+
+    @staticmethod
+    def calculate_mw(fname):
+        target_chains = [str(chain.seq) for chain in list(SeqIO.parse(fname, "fasta"))]
+        target_chains = list(set(target_chains))
+        mw = 0.0
+        for seq in target_chains:
+            seq = seq.replace("X", "A")
+            mw += round(molecular_weight(seq, "protein"), 2)
+
+        return mw
+
     # ------------------ General methods ------------------
 
     def dump_pickle(self):
@@ -72,10 +88,13 @@ class MrArray(object):
         self.make_workdir()
         idx = 0
         for mtz_fname in self.mtz_list:
-            for searchmodel, rms in zip(map(itemgetter(0), searchmodel_list), map(itemgetter(1), searchmodel_list)):
+            fname_list = map(itemgetter(0), searchmodel_list)
+            rms_list = map(itemgetter(1), searchmodel_list)
+            is_frag_list = map(itemgetter(2), searchmodel_list)
+            for searchmodel, rms, is_fragment in zip(fname_list, rms_list, is_frag_list):
                 idx += 1
-                mr_run = MrRun(idx, self.workdir, mtz_fname, searchmodel, self.mw, self.phaser_stdin,
-                               self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, rms)
+                mr_run = MrRun(idx, self.workdir, mtz_fname, self.fasta_fname, searchmodel, self.mw, self.phaser_stdin,
+                               self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, rms, is_fragment)
                 mr_run.dials_exe = self.dials_exe
                 mr_run.dump_pickle()
 

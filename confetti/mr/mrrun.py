@@ -8,15 +8,17 @@ from confetti.wrappers import Phaser, Refmac, Buccaneer, Shelxe, Reindex
 
 class MrRun(object):
 
-    def __init__(self, id, workdir, mtz_fname, searchmodel, mw, phaser_stdin, refmac_stdin,
-                 buccaneer_keywords, shelxe_keywords, rms=0.1):
+    def __init__(self, id, workdir, mtz_fname, fasta_fname, searchmodel, mw, phaser_stdin, refmac_stdin,
+                 buccaneer_keywords, shelxe_keywords, rms=0.1, is_fragment=False):
         self.id = id
         self.mtz_fname = mtz_fname
+        self.fasta_fname = fasta_fname
         self.workdir = os.path.join(workdir, 'mrrun_{}'.format(id))
         self.pickle_fname = os.path.join(self.workdir, 'mrrun.pckl')
         self.mw = mw
         self.searchmodel = searchmodel
         self.rms = rms
+        self.is_fragment = is_fragment
         self.ncopies = 0
         self.solvent = 0
         self.nreflections = 0
@@ -49,7 +51,7 @@ class MrRun(object):
     def python_script(self):
         return """{dials_exe}.python << EOF
 from confetti.mr import MrRun
-mr_run = MrRun(1, '{workdir}', '{mtz_fname}', {mw}, 'a', 'b', 'c', 'd', 'e').from_pickle('{pickle_fname}')
+mr_run = MrRun(1, '{workdir}', '{mtz_fname}', 'a', 'b', 'c', 'd', 'e', 'f', 'g').from_pickle('{pickle_fname}')
 mr_run.run()
 mr_run.dump_pickle()
 EOF""".format(**self.__dict__)
@@ -128,7 +130,8 @@ EOF""".format(**self.__dict__)
         self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.hklimport.hklout, self.solvent,
                              self.nreflections, self.shelxe_keywords)
         self.buccaneer = Buccaneer(self.workdir, self.hklimport.hklout, self.refmac.hklout,
-                                   self.refmac.xyzout, self.buccaneer_keywords)
+                                   self.refmac.xyzout, self.fasta_fname, self.solvent, self.buccaneer_keywords,
+                                   self.is_fragment)
 
     def reindex_input(self, spacegroup):
         reindexed_mtz = os.path.join(self.workdir, 'reindex', 'reindex_input_{}.mtz'.format(spacegroup))

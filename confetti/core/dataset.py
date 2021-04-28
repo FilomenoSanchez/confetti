@@ -90,10 +90,11 @@ class Dataset(object):
         self.clusterarray.reload_cluster_sequences()
         self.clusterarray.dump_pickle()
 
-    def prepare_mr(self, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords):
+    def prepare_mr(self, fasta_fname, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
+                   shelxe_keywords):
         mtz_list = self.retrieve_unique_mtzs()
 
-        self.mrarray = MrArray(self.workdir, mtz_list, mw, phaser_stdin, refmac_stdin, buccaneer_keywords,
+        self.mrarray = MrArray(self.workdir, mtz_list, fasta_fname, phaser_stdin, refmac_stdin, buccaneer_keywords,
                                shelxe_keywords, self.platform, self.queue_name, self.queue_environment,
                                self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
         self.mrarray.prepare_scripts(searchmodel_list)
@@ -107,9 +108,9 @@ class Dataset(object):
         if expand_to_p1:
             self.completeness_array.prepare_scripts(expand_to_p1, 'dataset_{}_p1')
 
-    def post_processing(self, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords,
-                        expand_to_p1=True):
-        self.prepare_mr(mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords)
+    def post_processing(self, fasta_fname, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
+                        shelxe_keywords, expand_to_p1=True):
+        self.prepare_mr(fasta_fname, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords, shelxe_keywords)
         self.prepare_completeness(expand_to_p1)
 
         if len(self.completeness_array.scripts) == 0 or len(self.mrarray.scripts) == 0:
@@ -201,7 +202,7 @@ class Dataset(object):
 
         return input_reflections, input_experiments
 
-    def process(self, experiments_fname, mw, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
+    def process(self, experiments_fname, fasta_fname, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
                 shelxe_keywords, sweep_slice_style=None, cluster_thresholds=(100, 200, 300, 500, 1000),
                 reset_wavelenght=None, expand_to_p1=True, slice_args=None):
         self.make_workdir()
@@ -212,5 +213,5 @@ class Dataset(object):
         self.logger.info('Creating cluster table for dataset {}'.format(self.id))
         self.create_cluster_table()
         self.logger.info('Running MR and processing completeness for dataset {}'.format(self.id))
-        self.post_processing(mw, searchmodel_list, phaser_stdin, refmac_stdin,
+        self.post_processing(fasta_fname, searchmodel_list, phaser_stdin, refmac_stdin,
                              buccaneer_keywords, shelxe_keywords, expand_to_p1)

@@ -1,17 +1,22 @@
 import os
 import subprocess
 from random import randint
-from confetti.wrappers import touch, Cad
+from confetti.wrappers import touch, Cad, Parrot
 from confetti.wrappers.wrapper import Wrapper
 
 
 class Buccaneer(Wrapper):
-    def __init__(self, workdir, mtz_fname, refmac_hklout, refmac_xyzout, keywords, xyzout='buccaneer_out.pdb'):
+    def __init__(self, workdir, mtz_fname, refmac_hklout, refmac_xyzout, seqin, solvent, keywords,
+                 is_fragment=False, xyzout='buccaneer_out.pdb'):
         self.mtz_fname = mtz_fname
         self.refmac_hklout = refmac_hklout
         self.refmac_xyzout = refmac_xyzout
         self.xyzout = os.path.join(workdir, 'buccaneer', xyzout)
         self._keywords = keywords
+        self.is_fragment = is_fragment
+        self.seqin = seqin
+        self.solvent = solvent
+        self.hklin = os.path.join(self.workdir, 'cad', 'buccaneer_input.mtz')
         self.logcontents = None
         self.rfactor = "NA"
         self.rfree = "NA"
@@ -43,7 +48,7 @@ class Buccaneer(Wrapper):
     @property
     def keywords(self):
         return self._keywords.format(**{'TITLE': randint(1, 10000), 'XYZIN': self.refmac_xyzout, 'XYZOUT': self.xyzout,
-                                        'HKLIN': os.path.join(self.workdir, 'cad', 'buccaneer_input.mtz')})
+                                        'SEQIN': self.seqin, 'HKLIN': self.hklin})
 
     @property
     def expected_output(self):
@@ -61,6 +66,14 @@ class Buccaneer(Wrapper):
 
     def _run(self):
         self.make_workdir()
+
+        if self.is_fragment:
+            parrot = Parrot(self.workdir, self.mtz_fname, self.seqin, self.solvent)
+            parrot.run()
+            if parrot.error:
+                self.logger.error('Parrot run failed! {}'.format(parrot.cmd))
+                return
+            self.mtz_fname = parrot.expected_output
 
         cad = Cad(self.workdir, self.mtz_fname, 'buccaneer_input.mtz', self.cad_stdin, self.refmac_hklout)
         cad.run()
