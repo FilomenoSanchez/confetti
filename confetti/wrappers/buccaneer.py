@@ -16,7 +16,7 @@ class Buccaneer(Wrapper):
         self.is_fragment = is_fragment
         self.seqin = seqin
         self.solvent = solvent
-        self.hklin = os.path.join(workdir, 'cad', 'buccaneer_input.mtz')
+        self.hklin = os.path.join(workdir, 'buccaneer', 'cad', 'buccaneer_input.mtz')
         self.logcontents = None
         self.rfactor = "NA"
         self.rfree = "NA"
@@ -68,7 +68,7 @@ class Buccaneer(Wrapper):
         self.make_workdir()
 
         if self.is_fragment:
-            parrot = Parrot(self.workdir, self.mtz_fname, self.seqin, self.solvent)
+            parrot = Parrot(self.workdir, self.refmac_hklout, self.seqin, self.solvent)
             parrot.run()
             if parrot.error:
                 self.logger.error('Parrot run failed! {}'.format(parrot.cmd))
