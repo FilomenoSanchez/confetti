@@ -9,7 +9,7 @@ from confetti.wrappers import Phaser, Refmac, Buccaneer, Shelxe, Reindex
 class MrRun(object):
 
     def __init__(self, id, workdir, mtz_fname, fasta_fname, searchmodel, mw, phaser_stdin, refmac_stdin,
-                 buccaneer_keywords, shelxe_keywords, rms=0.1, is_fragment=False):
+                 buccaneer_keywords, shelxe_keywords, rms=0.1, num=1, is_fragment=False):
         self.id = id
         self.mtz_fname = mtz_fname
         self.fasta_fname = fasta_fname
@@ -18,6 +18,7 @@ class MrRun(object):
         self.mw = mw
         self.searchmodel = searchmodel
         self.rms = rms
+        self.num = num
         self.is_fragment = is_fragment
         self.ncopies = 0
         self.solvent = 0
@@ -124,7 +125,7 @@ EOF""".format(**self.__dict__)
 
         self.estimate_contents()
         self.phaser = Phaser(self.workdir, self.hklimport.hklout, self.ncopies, self.mw,
-                             self.searchmodel, self.rms, self.phaser_stdin)
+                             self.searchmodel, self.rms, self.num, self.phaser_stdin)
         self.refmac = Refmac(self.workdir, self.hklimport.hklout, self.phaser.expected_output,
                              self.low_res, self.high_res, self.refmac_stdin)
         self.shelxe = Shelxe(self.workdir, self.refmac.xyzout, self.hklimport.hklout, self.solvent,

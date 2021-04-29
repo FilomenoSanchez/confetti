@@ -15,7 +15,7 @@ class PhaserScores(Enum):
 
 
 class Phaser(Wrapper):
-    def __init__(self, workdir, mtz_fname, ncopies, mw, searchmodel, rms, stdin, root='phaser_out'):
+    def __init__(self, workdir, mtz_fname, ncopies, mw, searchmodel, rms, num, stdin, root='phaser_out'):
         self.ncopies = ncopies
         self.mw = mw
         self.mtz_fname = mtz_fname
@@ -29,6 +29,11 @@ class Phaser(Wrapper):
         self.LLG = "NA"
         self.eLLG = "NA"
         self.VRMS = "NA"
+        self.num = round(int(self.ncopies) * int(num), 0)
+        if self.num < 1:
+            self.num = '1'
+        else:
+            self.num = int(self.num)
         self.phaser_exe = os.path.join(os.environ.get('CCP4'), 'bin', 'phaser')
         super(Phaser, self).__init__(workdir=os.path.join(workdir, 'phaser'))
 
@@ -46,7 +51,7 @@ class Phaser(Wrapper):
 
     @property
     def keywords(self):
-        return self.stdin.format(**{'COPIES': self.ncopies, 'MW': self.mw, 'HKLIN': self.mtz_fname,
+        return self.stdin.format(**{'COPIES': self.ncopies, 'NUM': self.num, 'MW': self.mw, 'HKLIN': self.mtz_fname,
                                     'RMS': self.rms, 'SEARCHMODEL': self.searchmodel})
 
     @property

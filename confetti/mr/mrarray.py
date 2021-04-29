@@ -90,11 +90,12 @@ class MrArray(object):
         for mtz_fname in self.mtz_list:
             fname_list = map(itemgetter(0), searchmodel_list)
             rms_list = map(itemgetter(1), searchmodel_list)
-            is_frag_list = map(itemgetter(2), searchmodel_list)
-            for searchmodel, rms, is_fragment in zip(fname_list, rms_list, is_frag_list):
+            num_list = map(itemgetter(2), searchmodel_list)
+            is_frag_list = map(itemgetter(3), searchmodel_list)
+            for searchmodel, rms, num, is_fragment in zip(fname_list, rms_list, num_list, is_frag_list):
                 idx += 1
                 mr_run = MrRun(idx, self.workdir, mtz_fname, self.fasta_fname, searchmodel, self.mw, self.phaser_stdin,
-                               self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, rms, is_fragment)
+                               self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, rms, num, is_fragment)
                 mr_run.dials_exe = self.dials_exe
                 mr_run.dump_pickle()
 
