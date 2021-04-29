@@ -44,7 +44,11 @@ class DialsMerge(Wrapper):
         return os.path.join(self.workdir, 'dials.merge.log')
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials merge execution found an exception: {}'.format(e))
+            self.error = True
 
     def _parse_logfile(self):
         with open(self.logfile, 'r') as fhandle:

@@ -29,7 +29,11 @@ class DialsRefine(Wrapper):
                "outlier.algorithm={outlier_algorithm}".format(**self.__dict__).split()
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials refine execution found an exception: {}'.format(e))
+            self.error = True
 
     def _parse_logfile(self):
         pass

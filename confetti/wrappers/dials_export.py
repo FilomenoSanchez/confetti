@@ -28,7 +28,11 @@ class DialsExport(Wrapper):
         return "{input_fnames} intensity={intensity} mtz.hklout={mtz_hklout}".format(**self.__dict__).split()
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials export execution found an exception: {}'.format(e))
+            self.error = True
 
     def _parse_logfile(self):
         pass

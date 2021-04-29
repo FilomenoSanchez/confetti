@@ -26,7 +26,11 @@ class DialsFindSpots(Wrapper):
         return self.experiments_fname
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials find spots execution found an exception: {}'.format(e))
+            self.error = True
 
     def _parse_logfile(self):
         pass

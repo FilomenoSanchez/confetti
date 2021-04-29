@@ -27,7 +27,10 @@ class DialsEstimateResolution(Wrapper):
         return self.input_fnames.split()
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials estimate resolution execution found an exception: {}'.format(e))
 
     def _parse_logfile(self):
         with open(self.logfile, 'r') as fhandle:

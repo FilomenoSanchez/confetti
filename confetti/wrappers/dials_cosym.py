@@ -32,7 +32,10 @@ class DialsCosym(Wrapper):
         return os.path.join(self.workdir, 'dials.cosym.log')
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials cosym execution found an exception: {}'.format(e))
 
     def _parse_logfile(self):
         with open(self.logfile, 'r') as fhandle:

@@ -26,7 +26,11 @@ class DialsIndex(Wrapper):
         return self.input_fnames.split()
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials index execution found an exception: {}'.format(e))
+            self.error = True
 
     def _parse_logfile(self):
         pass

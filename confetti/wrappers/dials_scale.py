@@ -46,7 +46,11 @@ class DialsScale(Wrapper):
                "deltacchalf.max_cycles={deltacchalf_max_cycles}".format(**self.__dict__).split()
 
     def _run(self):
-        run(self.cmd)
+        try:
+            run(self.cmd)
+        except Exception as e:
+            self.logger.error('Dials scale execution found an exception: {}'.format(e))
+            self.error = True
 
     def _parse_logfile(self):
         with open(self.logfile, 'r') as fhandle:
