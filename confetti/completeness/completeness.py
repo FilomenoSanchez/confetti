@@ -4,7 +4,7 @@ import pyjob
 import logging
 from scipy.stats import gaussian_kde, ks_2samp
 from scipy.spatial import ConvexHull
-from scipy.spatial.qhull import  QhullError
+from scipy.spatial.qhull import QhullError
 from sklearn.cluster import MeanShift
 from cctbx import miller, array_family
 from confetti.io.reflections_parser import Reflections
@@ -54,6 +54,7 @@ completeness = Completeness().from_raw_data('{experiments_fname}', '{reflections
 completeness.get_res_density()
 completeness.get_missing_observed_density_abc_weighted('RES_CUMSUM')
 completeness.get_meanshift_labels()
+completeness.get_unique_reflections()
 completeness.table.to_csv('{csv_out_fname}')
 EOF""".format(**self.__dict__)
 
@@ -102,8 +103,14 @@ EOF""".format(**self.__dict__)
         return ks.statistic
 
     @property
+    def symmetry_level(self):
+        if self.table is None or 'IS_UNIQUE' not in self.table.columns:
+            return None
+        return self.table.shape[0] / self.table.loc[self.table.IS_UNIQUE].shape[0]
+
+    @property
     def summary(self):
-        return (self.is_p1, self.reflections_fname, self.experiments_fname, self.ksd_r,
+        return (self.is_p1, self.symmetry_level, self.reflections_fname, self.experiments_fname, self.ksd_r,
                 self.ksd_phi, self.ksd_theta, self.ksd_r_prime, self.get_ratio_high_density_reflections(),
                 self.get_ratio_high_density_reflections(0.6), self.get_ratio_high_density_reflections(0.9),
                 self.get_volume_ratio())
@@ -182,7 +189,9 @@ EOF""".format(**self.__dict__)
     # ------------------ Methods ------------------
 
     def register_raw_data(self, experiments_fname, reflections_fname, update_table=False):
+        self.experiments_fname = experiments_fname
         self.experiments = Experiments(experiments_fname)
+        self.reflections_fname = reflections_fname
         self.reflections = Reflections(reflections_fname)
 
         if update_table:

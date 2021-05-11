@@ -1,5 +1,7 @@
 import os
 import pickle
+from Bio import SeqIO
+from Bio.SeqUtils import molecular_weight
 import pyjob
 import logging
 from confetti.mr import MtzParser, HklImport
@@ -8,14 +10,14 @@ from confetti.wrappers import Phaser, Refmac, Buccaneer, Shelxe, Reindex
 
 class MrRun(object):
 
-    def __init__(self, id, workdir, mtz_fname, fasta_fname, searchmodel, mw, phaser_stdin, refmac_stdin,
+    def __init__(self, id, workdir, mtz_fname, fasta_fname, searchmodel, phaser_stdin, refmac_stdin,
                  buccaneer_keywords, shelxe_keywords, rms=0.1, num=1, is_fragment=False):
         self.id = id
         self.mtz_fname = mtz_fname
         self.fasta_fname = fasta_fname
         self.workdir = os.path.join(workdir, 'mrrun_{}'.format(id))
         self.pickle_fname = os.path.join(self.workdir, 'mrrun.pckl')
-        self.mw = mw
+        self.mw = None
         self.searchmodel = searchmodel
         self.rms = rms
         self.num = num
@@ -52,7 +54,7 @@ class MrRun(object):
     def python_script(self):
         return """{dials_exe}.python << EOF
 from confetti.mr import MrRun
-mr_run = MrRun(1, '{workdir}', '{mtz_fname}', 'a', 'b', 'c', 'd', 'e', 'f', 'g').from_pickle('{pickle_fname}')
+mr_run = MrRun(1, '{workdir}', '{mtz_fname}', 'a', 'b', 'c', 'd', 'e', 'f').from_pickle('{pickle_fname}')
 mr_run.run()
 mr_run.dump_pickle()
 EOF""".format(**self.__dict__)
@@ -66,6 +68,19 @@ EOF""".format(**self.__dict__)
     @property
     def summary(self):
         return *self.phaser.summary, *self.refmac.summary, *self.shelxe.summary, *self.buccaneer.summary
+
+    # ------------------ Static methods ------------------
+
+    @staticmethod
+    def calculate_mw(fname):
+        target_chains = [str(chain.seq) for chain in list(SeqIO.parse(fname, "fasta"))]
+        target_chains = list(set(target_chains))
+        mw = 0.0
+        for seq in target_chains:
+            seq = seq.replace("X", "A")
+            mw += round(molecular_weight(seq, "protein"), 2)
+
+        return mw
 
     # ------------------ General methods ------------------
 
@@ -116,6 +131,7 @@ EOF""".format(**self.__dict__)
             self.error = True
 
     def initiate_wrappers(self):
+        self.mw = self.calculate_mw(self.fasta_fname)
         self.hklimport = HklImport(self.workdir, self.mtz_fname, 'merged_FREE_imported.mtz')
         self.hklimport.run()
         if self.hklimport.error:

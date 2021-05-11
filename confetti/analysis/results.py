@@ -40,12 +40,12 @@ class Results(object):
             self.logger.error('No completeness dir to parse')
             return
 
+        fname_template = os.path.join(self.completeness_dir, '{}', 'completeness_table_{}.sh')
         completeness_table = []
         for completeness_table_dir in os.listdir(self.completeness_dir):
             table_id = completeness_table_dir.replace('_p1', '').split('_')[-1]
             completeness_table_csv = os.path.join(self.completeness_dir, completeness_table_dir, 'completeness.csv')
-            script_fname = os.path.join(self.completeness_dir, completeness_table_dir,
-                                        'completeness_table_{}.sh'.format(table_id))
+            script_fname = fname_template.format(completeness_table_dir, table_id)
             if os.path.isfile(completeness_table_csv):
                 with open(script_fname, 'r') as fhandle:
                     for line in fhandle:
@@ -57,15 +57,14 @@ class Results(object):
                             experiments_fname = input_args[0]
                             is_p1 = input_args[2]
                             break
-                updated_completeness = Completeness().from_csv(completeness_table_csv, is_p1)
-                updated_completeness.reflections_fname = reflections_fname
-                updated_completeness.experiments_fname = experiments_fname
-                completeness_table.append((self.dataset_id, table_id, *updated_completeness.summary))
+                completeness = Completeness().from_csv(completeness_table_csv, is_p1)
+                completeness.register_raw_data(experiments_fname, reflections_fname, update_table=False)
+                completeness_table.append((self.dataset_id, table_id, *completeness.summary))
 
         self.completeness_table = pd.DataFrame(completeness_table)
-        self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'IS_P1', 'SCALED_REFL', 'SCALED_EXPT', 'KSD_r',
-                                           'KSD_phi', 'KSD_theta', 'KSD_r_prime', 'R_RFLmissing_0.3',
-                                           'R_RFLmissing_0.6', 'R_RFLmissing_0.9', 'R_VOLUME']
+        self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'IS_P1', 'SYMMETRY_LEVEL', 'SCALED_REFL',
+                                           'SCALED_EXPT', 'KSD_r', 'KSD_phi', 'KSD_theta', 'KSD_r_prime',
+                                           'R_RFLmissing_0.3', 'R_RFLmissing_0.6', 'R_RFLmissing_0.9', 'R_VOLUME']
         self.completeness_table.drop('DATASET', 1, inplace=True)
 
     def recover_clusters(self):

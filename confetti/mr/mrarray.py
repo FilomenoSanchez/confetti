@@ -4,8 +4,6 @@ import pickle
 from pyjob import TaskFactory
 import logging
 from confetti.mr import MrRun
-from Bio import SeqIO
-from Bio.SeqUtils import molecular_weight
 
 
 class MrArray(object):
@@ -27,7 +25,6 @@ class MrArray(object):
         self.cleanup = cleanup
         self.mtz_list = mtz_list
         self.fasta_fname = fasta_fname
-        self.mw = self.calculate_mw(fasta_fname)
         self.phaser_stdin = phaser_stdin
         self.refmac_stdin = refmac_stdin
         self.buccaneer_keywords = buccaneer_keywords
@@ -60,19 +57,6 @@ class MrArray(object):
 
         return info
 
-    # ------------------ Static methods ------------------
-
-    @staticmethod
-    def calculate_mw(fname):
-        target_chains = [str(chain.seq) for chain in list(SeqIO.parse(fname, "fasta"))]
-        target_chains = list(set(target_chains))
-        mw = 0.0
-        for seq in target_chains:
-            seq = seq.replace("X", "A")
-            mw += round(molecular_weight(seq, "protein"), 2)
-
-        return mw
-
     # ------------------ General methods ------------------
 
     def dump_pickle(self):
@@ -94,7 +78,7 @@ class MrArray(object):
             is_frag_list = map(itemgetter(3), searchmodel_list)
             for searchmodel, rms, num, is_fragment in zip(fname_list, rms_list, num_list, is_frag_list):
                 idx += 1
-                mr_run = MrRun(idx, self.workdir, mtz_fname, self.fasta_fname, searchmodel, self.mw, self.phaser_stdin,
+                mr_run = MrRun(idx, self.workdir, mtz_fname, self.fasta_fname, searchmodel, self.phaser_stdin,
                                self.refmac_stdin, self.buccaneer_keywords, self.shelxe_keywords, rms, num, is_fragment)
                 mr_run.dials_exe = self.dials_exe
                 mr_run.dump_pickle()
