@@ -14,8 +14,14 @@ class Experiments(Parser):
             self.templates.append(imageset.get_template())
 
         self.imagesets = []
+        self.imagesets_angles = []
         for imageset in self.data.imagesets():
             self.imagesets.append(imageset.paths())
+            scan = imageset.get_scan()
+            angles = []
+            for image_idx in range(1, len(imageset.paths())+1):
+                angles.append(scan.get_angle_from_image_index(image_idx))
+            self.imagesets_angles.append(angles)
 
         self.identifiers = []
         for experiment in self.data:
