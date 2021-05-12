@@ -167,9 +167,9 @@ class Dataset(object):
             table.append((self.id, dataset.id, *dataset.summary))
 
         self.completeness_table = pd.DataFrame(table)
-        self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'IS_P1', 'SCALED_REFL', 'SCALED_EXPT', 'KSD_r',
-                                           'KSD_phi', 'KSD_theta', 'KSD_r_prime', 'R_RFLmissing_0.3',
-                                           'R_RFLmissing_0.6', 'R_RFLmissing_0.9', 'R_VOLUME']
+        self.completeness_table.columns = ['DATASET', 'TABLE_ID', 'IS_P1', 'SYMMETRY_LEVEL', 'SCALED_REFL',
+                                           'SCALED_EXPT', 'KSD_r', 'KSD_phi', 'KSD_theta', 'KSD_r_prime',
+                                           'R_RFLmissing_0.3', 'R_RFLmissing_0.6', 'R_RFLmissing_0.9', 'R_VOLUME']
 
     def retrieve_unique_mtzs(self):
         mtz_list = []
