@@ -1,6 +1,6 @@
 import random
 from confetti.io.parser import Parser
-from dials.utils import slice_experiments
+from dials.util.slice import slice_experiments
 from dials.util.phil import FilenameDataWrapper
 from dxtbx.model.experiment_list import ExperimentListFactory
 
@@ -78,5 +78,5 @@ class Experiments(Parser):
 
         if any(identifiers_to_remove):
             self.data.remove_on_experiment_identifiers(identifiers_to_remove)
-        self.data = slice_experiments(self.data, [new_image_ranges])
+        self.data = slice_experiments(self.data, new_image_ranges)
         self._register_data()
