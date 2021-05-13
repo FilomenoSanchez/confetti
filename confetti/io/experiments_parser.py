@@ -40,7 +40,7 @@ class Experiments(Parser):
         identifiers_to_remove = []
         for experiment in self.data:
             image_range = experiment.scan.get_image_range()
-            angle_range = [experiment.scan.get_angle_from_image_index(idx) for idx in range(1, experiment.imageset.size())]
+            angle_range = [experiment.scan.get_angle_from_image_index(idx) for idx in range(1, experiment.imageset.size()+1)]
             initial_angle = angle_range[0]
             final_angle = angle_range[-1]
             total_angle_gain = abs(initial_angle - final_angle)
@@ -70,6 +70,8 @@ class Experiments(Parser):
                         if abs(angle - initial_angle) >= angle_threshold and len(range(start, idx)) != 0:
                             experiment.scan.set_image_range((start+1, idx))
                             break
+                else:
+                    identifiers_to_remove.append(experiment.identifier)
 
         if any(identifiers_to_remove):
             self.data.remove_on_experiment_identifiers(identifiers_to_remove)
