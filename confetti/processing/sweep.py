@@ -10,7 +10,7 @@ from dxtbx.model.experiment_list import ExperimentList
 
 class Sweep(object):
 
-    def __init__(self, id, workdir, experiment):
+    def __init__(self, id, workdir, experiment=None):
         self.id = id
         self.workdir = os.path.join(workdir, 'sweep_{}'.format(id))
         self.input_experiment_fname = os.path.join(self.workdir, 'imported.expt')
@@ -18,7 +18,8 @@ class Sweep(object):
         self.dials_exe = 'dials'
         self.pickle_fname = os.path.join(self.workdir, 'sweep.pckl')
         self.logger = logging.getLogger(__name__)
-        self._prepare_input(experiment)
+        if experiment is not None:
+            self._prepare_input(experiment)
 
     # ------------------ Class methods ------------------
 
@@ -46,7 +47,7 @@ class Sweep(object):
     def python_script(self):
         return """{dials_exe}.python << EOF
 from confetti.processing import Sweep
-sweep = Sweep('dummy', 'dummy', 'dummy').from_pickle('{pickle_fname}')
+sweep = Sweep('{id}', '{workdir}').from_pickle('{pickle_fname}')
 sweep.process()
 sweep.dump_pickle()
 EOF""".format(**self.__dict__)
