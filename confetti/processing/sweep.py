@@ -10,7 +10,7 @@ from dxtbx.model.experiment_list import ExperimentList
 
 class Sweep(object):
 
-    def __init__(self, id, workdir, experiment=None):
+    def __init__(self, id, workdir):
         self.id = id
         self.workdir = os.path.join(workdir, 'sweep_{}'.format(id))
         self.input_experiment_fname = os.path.join(self.workdir, 'imported.expt')
@@ -18,8 +18,6 @@ class Sweep(object):
         self.dials_exe = 'dials'
         self.pickle_fname = os.path.join(self.workdir, 'sweep.pckl')
         self.logger = logging.getLogger(__name__)
-        if experiment is not None:
-            self._prepare_input(experiment)
 
     # ------------------ Class methods ------------------
 
@@ -64,7 +62,7 @@ EOF""".format(**self.__dict__)
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
-    def _prepare_input(self, experiment):
+    def prepare_input(self, experiment):
         self.make_workdir()
         experiment_list = ExperimentList()
         experiment_list.append(experiment)

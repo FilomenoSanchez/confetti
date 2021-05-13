@@ -70,8 +70,9 @@ class SweepArray(object):
         for idx, experiment in enumerate(self.imported_expt.data, 1):
             if experiment.scan.get_num_images() <= 1:
                 continue
-            sweep = Sweep(idx, self.workdir, experiment)
+            sweep = Sweep(idx, self.workdir)
             sweep.dials_exe = self.dials_exe
+            sweep.prepare_input(experiment)
             sweep.dump_pickle()
             self.sweeps.append(sweep)
             self.scripts.append(sweep.script)
@@ -100,5 +101,5 @@ class SweepArray(object):
         new_sweeps = []
         for sweep in self.sweeps:
             if os.path.isfile(sweep.pickle_fname):
-                new_sweeps.append(Sweep('dummy', 'dummy', 'dummy').from_pickle(sweep.pickle_fname))
+                new_sweeps.append(Sweep('dummy', 'dummy').from_pickle(sweep.pickle_fname))
         self.sweeps = new_sweeps
