@@ -88,9 +88,12 @@ EOF""".format(**self.__dict__)
             self.clusters.append(cluster)
             self.exclude_sweeps += [self.sweep_dict[sweep] for sweep in cluster.experiments_identifiers]
 
-            if cluster.nclusters <= 1 or len(cluster.experiments_identifiers) == 0:
-                self.logger.info('Cluster_{} found {} clusters. Exiting now...'.format(idx, cluster.nclusters))
+            if len(cluster.experiments_identifiers) <= 1:
+                self.logger.info('Cluster_{} found no clusters. Exiting now...'.format(idx))
+                solved = True
+            elif len(self.exclude_sweeps) >= len(self.sweep_dict.keys()):
+                self.logger.info('All sweeps have been clustered. Exiting now...'.format(idx))
                 solved = True
             else:
-                self.logger.info('Cluster_{} found {} clusters. New iteration...'.format(idx, cluster.nclusters))
+                self.logger.info('Cluster_{} found more clusters. New iteration...'.format(idx))
                 idx += 1

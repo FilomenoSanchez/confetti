@@ -65,10 +65,10 @@ class CompletenessArray(object):
     def prepare_scripts(self, expand_to_p1=True, workdir_template='dataset_{}'):
         self.make_workdir()
         for idx, input_fnames in enumerate(zip(self.input_experiments, self.input_reflections), 1):
-            mtz_fname = input_fnames[0].replace('scaled.expt', 'merged.mtz')
-            spacegroup = self.get_spacegroup(mtz_fname)
-            if expand_to_p1 and spacegroup is not None and spacegroup == 1:
-                continue
+            #mtz_fname = input_fnames[0].replace('scaled.expt', 'merged.mtz')
+            #spacegroup = self.get_spacegroup(mtz_fname)
+            #if expand_to_p1 and spacegroup is not None and spacegroup == 1:
+            #    continue
             workdir = os.path.join(self.workdir, workdir_template.format(idx))
             os.mkdir(workdir)
             dataset = Completeness()

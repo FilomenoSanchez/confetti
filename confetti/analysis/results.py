@@ -84,12 +84,12 @@ class Results(object):
                 cluster_table.append((self.dataset_id, cluster_sequence.id, *cluster.summary, tuple(sorted(sweeps))))
 
         self.cluster_table = pd.DataFrame(cluster_table)
-        self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
-                                      'CLST_WORKDIR', 'CLST_HKLOUT', 'CLST_SCALED_REFL', 'CLST_SCALED_EXPT',
-                                      'CCHALF_MEAN', 'DELTA_CCHALF_MEAN', 'CCHALF_STD', 'SCALE_N_DELETED_DATASETS',
-                                      'RPIM', 'RMEAS', 'RMERGE', 'CCHALF', 'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS',
-                                      'RESOLUTION_LOW', 'RESOLUTION_HIGH', 'COMPLETENESS_LOW', 'COMPLETENESS_HIGH',
-                                      'SPACE_GROUP', 'EXPT_IDS', 'SWEEPS']
+        self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'CLST_WORKDIR',
+                                      'CLST_HKLOUT', 'CLST_SCALED_REFL', 'CLST_SCALED_EXPT', 'CCHALF_MEAN',
+                                      'DELTA_CCHALF_MEAN', 'CCHALF_STD', 'SCALE_N_DELETED_DATASETS', 'RPIM', 'RMEAS',
+                                      'RMERGE', 'CCHALF', 'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS', 'RESOLUTION_LOW',
+                                      'RESOLUTION_HIGH', 'COMPLETENESS_LOW', 'COMPLETENESS_HIGH', 'SPACE_GROUP',
+                                      'EXPT_IDS', 'SWEEPS']
         self.cluster_table.reset_index(drop=True, inplace=True)
 
     def recover_mr_results(self):

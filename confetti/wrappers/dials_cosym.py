@@ -1,7 +1,7 @@
 import os
-import json
 from dials.command_line.cosym import run
 from confetti.wrappers.wrapper import Wrapper
+from confetti.io import Experiments
 
 
 class DialsCosym(Wrapper):
@@ -10,7 +10,6 @@ class DialsCosym(Wrapper):
         self.input_fnames = input_fnames
         self.clustering_threshold = clustering_threshold
         self.nprocs = nprocs
-        self.nclusters = 0
         self.cluster_experiment_identifiers = []
         super(DialsCosym, self).__init__(workdir=workdir)
 
@@ -38,10 +37,6 @@ class DialsCosym(Wrapper):
             self.logger.error('Dials cosym execution found an exception: {}'.format(e))
 
     def _parse_logfile(self):
-        with open(self.logfile, 'r') as fhandle:
-            for line in fhandle:
-                if 'cluster_' in line:
-                    self.nclusters += 1
-                elif 'Selecting subset of ' in line and ' datasets for cosym analysis:' in line:
-                    experiments = line.split('analysis: ')[-1].lstrip().rstrip()
-                    self.cluster_experiment_identifiers = json.loads(experiments.replace("'", '"'))
+        if not self.error:
+            experiments = Experiments(self.expected_output)
+            self.cluster_experiment_identifiers = experiments.identifiers

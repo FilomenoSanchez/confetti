@@ -15,7 +15,6 @@ class Cluster(object):
         self.logger = logging.getLogger(__name__)
         self.sweeps_dir = sweeps_dir
         self.experiments_identifiers = []
-        self.nclusters = 'NA'
         self.resolution = 'NA'
         self.scaling_stats = ['NA', 'NA', 'NA', 'NA']
         self.merging_stats = ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
@@ -37,9 +36,8 @@ class Cluster(object):
 
     @property
     def summary(self):
-        return (self.id, self.clustering_threshold, self.nclusters, self.workdir, self.hklout,
-                self.scaled_refl, self.scaled_expt, *self.scaling_stats, *self.merging_stats,
-                tuple(sorted(self.experiments_identifiers)))
+        return (self.id, self.clustering_threshold, self.workdir, self.hklout, self.scaled_refl, self.scaled_expt,
+                *self.scaling_stats, *self.merging_stats, tuple(sorted(self.experiments_identifiers)))
 
     @cached_property
     def input_fnames(self):
@@ -73,12 +71,11 @@ class Cluster(object):
                                                    self.clustering_threshold, self.nprocs)
         dials_cosym.run()
         self.experiments_identifiers = dials_cosym.cluster_experiment_identifiers
-        self.nclusters = dials_cosym.nclusters
         if dials_cosym.error:
             self.logger.error('Cluster_{} failed to run cosym'.format(self.id))
             self.error = True
             return
-        elif dials_cosym.nclusters < 1 or len(dials_cosym.cluster_experiment_identifiers) <= 1:
+        elif len(dials_cosym.cluster_experiment_identifiers) <= 1:
             self.logger.warning('Cluster_{} found no clusters!'.format(self.id))
             self.error = True
             return

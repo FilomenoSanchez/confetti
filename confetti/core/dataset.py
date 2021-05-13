@@ -104,9 +104,9 @@ class Dataset(object):
         self.completeness_array = CompletenessArray(self.workdir, input_reflections, input_experiments,
                                                     self.platform, self.queue_name, self.queue_environment,
                                                     self.max_concurrent_nprocs, self.cleanup, self.dials_exe)
-        self.completeness_array.prepare_scripts(False)
-        if expand_to_p1:
-            self.completeness_array.prepare_scripts(expand_to_p1, 'dataset_{}_p1')
+        #self.completeness_array.prepare_scripts(False)
+        #if expand_to_p1:
+        self.completeness_array.prepare_scripts(expand_to_p1, 'dataset_{}_p1')
 
     def post_processing(self, fasta_fname, searchmodel_list, phaser_stdin, refmac_stdin, buccaneer_keywords,
                         shelxe_keywords, expand_to_p1=True):
@@ -141,12 +141,12 @@ class Dataset(object):
                 table.append((self.id, cluster_sequence.id, *cluster.summary, tuple(sorted(sweeps))))
 
         self.cluster_table = pd.DataFrame(table)
-        self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'NCLUSTERS',
-                                      'CLST_WORKDIR', 'CLST_HKLOUT', 'CLST_SCALED_REFL', 'CLST_SCALED_EXPT',
-                                      'CCHALF_MEAN', 'DELTA_CCHALF_MEAN', 'CCHALF_STD', 'SCALE_N_DELETED_DATASETS',
-                                      'RPIM', 'RMEAS', 'RMERGE', 'CCHALF', 'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS',
-                                      'RESOLUTION_LOW', 'RESOLUTION_HIGH', 'COMPLETENESS_LOW', 'COMPLETENESS_HIGH',
-                                      'SPACE_GROUP', 'EXPT_IDS', 'SWEEPS']
+        self.cluster_table.columns = ['DATASET', 'CLST_SEQ', 'CLST_ID', 'CLST_THRESHOLD', 'CLST_WORKDIR',
+                                      'CLST_HKLOUT', 'CLST_SCALED_REFL', 'CLST_SCALED_EXPT', 'CCHALF_MEAN',
+                                      'DELTA_CCHALF_MEAN', 'CCHALF_STD', 'SCALE_N_DELETED_DATASETS', 'RPIM', 'RMEAS',
+                                      'RMERGE', 'CCHALF', 'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS', 'RESOLUTION_LOW',
+                                      'RESOLUTION_HIGH', 'COMPLETENESS_LOW', 'COMPLETENESS_HIGH', 'SPACE_GROUP',
+                                      'EXPT_IDS', 'SWEEPS']
 
     def create_mr_table(self):
         table = []

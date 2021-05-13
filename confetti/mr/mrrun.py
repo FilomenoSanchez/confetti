@@ -125,10 +125,10 @@ EOF""".format(**self.__dict__)
             self.logger.error('MR-Run {} failed to execute buccaneer'.format(self.id))
             self.error = True
 
-        self.shelxe.run()
-        if self.shelxe.error:
-            self.logger.error('MR-Run {} failed to execute shelxe'.format(self.id))
-            self.error = True
+        #self.shelxe.run()
+        #if self.shelxe.error:
+        #    self.logger.error('MR-Run {} failed to execute shelxe'.format(self.id))
+        #    self.error = True
 
     def initiate_wrappers(self):
         self.mw = self.calculate_mw(self.fasta_fname)
