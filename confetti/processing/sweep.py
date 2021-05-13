@@ -5,18 +5,20 @@ import logging
 from cached_property import cached_property
 from confetti.io import Experiments
 import confetti.wrappers
+from dxtbx.model.experiment_list import ExperimentList
 
 
 class Sweep(object):
 
-    def __init__(self, id, workdir, image_fnames):
+    def __init__(self, id, workdir, experiment):
         self.id = id
-        self.image_fnames = image_fnames
         self.workdir = os.path.join(workdir, 'sweep_{}'.format(id))
+        self.input_experiment_fname = os.path.join(self.workdir, 'imported.expt')
         self.error = False
         self.dials_exe = 'dials'
         self.pickle_fname = os.path.join(self.workdir, 'sweep.pckl')
         self.logger = logging.getLogger(__name__)
+        self._prepare_input(experiment)
 
     # ------------------ Class methods ------------------
 
@@ -26,10 +28,6 @@ class Sweep(object):
             return pickle.load(fhandle)
 
     # ------------------ General properties ------------------
-
-    @property
-    def size(self):
-        return len(self.image_fnames)
 
     @property
     def integrated_reflections(self):
@@ -65,6 +63,12 @@ EOF""".format(**self.__dict__)
         if not os.path.isdir(self.workdir):
             os.mkdir(self.workdir)
 
+    def _prepare_input(self, experiment):
+        self.make_workdir()
+        experiment_list = ExperimentList()
+        experiment_list.append(experiment)
+        experiment_list.as_file(self.input_experiment_fname)
+
     def dump_pickle(self):
         self.make_workdir()
         with open(self.pickle_fname, 'wb') as fhandle:
@@ -74,10 +78,8 @@ EOF""".format(**self.__dict__)
         self.make_workdir()
         os.chdir(self.workdir)
 
-        dials_import = confetti.wrappers.DialsImport(self.workdir, ' '.join(self.image_fnames))
-        dials_import.run()
-        if dials_import.error:
-            self.logger.error('Sweep {} failed trying to import image data'.format(self.id))
+        if not os.path.isfile(self.input_experiment_fname):
+            self.logger.error('Sweep {} unable to find input file {}'.format(self.id, self.input_experiment_fname))
             self.error = True
             return
 

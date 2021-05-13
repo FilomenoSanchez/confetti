@@ -1,6 +1,5 @@
 import os
 import pickle
-import random
 from pyjob import TaskFactory
 import logging
 from confetti.io import Experiments
@@ -68,12 +67,10 @@ class SweepArray(object):
     def process_sweeps(self):
         self.make_workdir()
 
-        for idx, imageset in enumerate(self.imported_expt.imagesets, 1):
-
-            if len(imageset) == 1:
+        for idx, experiment in enumerate(self.imported_expt.data, 1):
+            if experiment.scan.get_num_images() <= 1:
                 continue
-
-            sweep = Sweep(idx, self.workdir, imageset)
+            sweep = Sweep(idx, self.workdir, experiment)
             sweep.dials_exe = self.dials_exe
             sweep.dump_pickle()
             self.sweeps.append(sweep)
@@ -98,66 +95,6 @@ class SweepArray(object):
             for experiment in sweep_experiments.data:
                 experiment.beam.set_wavelength(wavelength)
             sweep_experiments.data.as_file(sweep.integrated_experiments)
-
-    def slice_sweeps_angle(self, angle_threshold, discard_sweeps_outside=False, random_start=False):
-        new_imagesets = []
-        for imageset_fnames, imageset_angles in zip(self.imported_expt.imagesets, self.imported_expt.imagesets_angles):
-            initial_angle = imageset_angles[0]
-            final_angle = imageset_angles[-1]
-            total_angle_gain = abs(initial_angle - final_angle)
-
-            if discard_sweeps_outside and total_angle_gain < angle_threshold:
-                continue
-            elif not random_start:
-                for idx, angle in enumerate(imageset_angles, 1):
-                    if abs(angle - initial_angle) >= angle_threshold and len(imageset_fnames[:idx]) != 0:
-                        new_imagesets.append(imageset_fnames[:idx])
-                        break
-            else:
-                last_valid_start_idx = None
-                for idx, value in enumerate(imageset_angles[::-1]):
-                    if idx == len(imageset_angles) - 1:
-                        break
-                    real_idx = len(imageset_angles) - idx - 1
-                    angle_gain = abs(final_angle - imageset_angles[real_idx])
-                    if angle_gain >= angle_threshold:
-                        last_valid_start_idx = real_idx
-                        break
-                if last_valid_start_idx is not None:
-                    start = random.randint(0, last_valid_start_idx)
-                    initial_angle = imageset_angles[start]
-                    for idx, angle in enumerate(imageset_angles[start:], start + 1):
-                        if abs(angle - initial_angle) >= angle_threshold and len(imageset_fnames[start:idx]) != 0:
-                            new_imagesets.append(imageset_fnames[start:idx])
-                            break
-
-        self.imported_expt.imagesets = tuple(new_imagesets)
-
-    def slice_sweeps(self, slice_size, discard_sweeps_outside=False, random_start=False):
-        new_imagesets = []
-        for imageset in self.imported_expt.imagesets:
-            if discard_sweeps_outside and len(imageset) < slice_size:
-                continue
-            elif not random_start:
-                if len(imageset[:slice_size]) != 0:
-                    new_imagesets.append(imageset[:slice_size])
-            else:
-                start = random.randint(0, len(imageset) - slice_size)
-                new_imagesets.append(imageset[start:start + slice_size])
-        self.imported_expt.imagesets = tuple(new_imagesets)
-
-    def divide_sweeps(self, slice_size, gap, discard_smaller_sweeps=False):
-        new_imagesets = []
-        for imageset in self.imported_expt.imagesets:
-            if discard_smaller_sweeps and len(imageset) < slice_size:
-                continue
-            for index in range(0, len(imageset), gap + slice_size):
-                new_imageset = imageset[index:index + slice_size]
-                if discard_smaller_sweeps and len(new_imageset) < slice_size:
-                    continue
-                elif len(new_imageset) != 0:
-                    new_imagesets.append(new_imageset)
-        self.imported_expt.imagesets = tuple(new_imagesets)
 
     def reload_sweeps(self):
         new_sweeps = []
