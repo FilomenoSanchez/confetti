@@ -66,3 +66,8 @@ class Wrapper(ABC):
         self.check_output()
         if self.logfile is not None and os.path.isfile(self.logfile):
             self._parse_logfile()
+        if 'dials' in logging.Logger.manager.loggerDict.keys():
+            logger = logging.getLogger('dials')
+            while logger.hasHandlers():
+                logger.removeHandler(logger.handlers[0])
+

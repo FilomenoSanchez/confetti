@@ -91,7 +91,7 @@ EOF""".format(**self.__dict__)
             if len(cluster.experiments_identifiers) <= 1:
                 self.logger.info('Cluster_{} found no clusters. Exiting now...'.format(idx))
                 solved = True
-            elif len(self.exclude_sweeps) >= len(self.sweep_dict.keys()):
+            elif len(self.exclude_sweeps) >= len(self.sweep_dict.keys()) - 1:
                 self.logger.info('All sweeps have been clustered. Exiting now...'.format(idx))
                 solved = True
             else:
