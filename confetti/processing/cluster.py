@@ -16,6 +16,7 @@ class Cluster(object):
         self.sweeps_dir = sweeps_dir
         self.experiments_identifiers = []
         self.resolution = 'NA'
+        self.connected_missing_reflections = 'NA'
         self.scaling_stats = ['NA', 'NA', 'NA', 'NA']
         self.merging_stats = ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
         self.exclude_sweeps = []
@@ -37,7 +38,8 @@ class Cluster(object):
     @property
     def summary(self):
         return (self.id, self.clustering_threshold, self.workdir, self.hklout, self.scaled_refl, self.scaled_expt,
-                *self.scaling_stats, *self.merging_stats, tuple(sorted(self.experiments_identifiers)))
+                *self.scaling_stats, *self.merging_stats, self.connected_missing_reflections,
+                tuple(sorted(self.experiments_identifiers)))
 
     @cached_property
     def input_fnames(self):
@@ -118,6 +120,14 @@ class Cluster(object):
             self.logger.error('Cluster_{} failed to create FREE flag'.format(self.id))
             self.error = True
             return
+
+        dials_missing_reflections = confetti.wrappers.DialsMissingReflections(self.workdir, min_component_size=100)
+        dials_missing_reflections.run()
+        if dials_missing_reflections.error:
+            self.logger.error("Sweep {} failed to calculate connected missing reflections".format(self.id))
+            self.error = True
+            return
+        self.connected_missing_reflections = dials_missing_reflections.connected_reflections_percentage
 
     def scale(self):
         dials_scale = confetti.wrappers.DialsScale(self.workdir, self.resolution, self.nprocs)

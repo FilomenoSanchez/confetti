@@ -115,4 +115,3 @@ EOF""".format(**self.__dict__)
         if dials_export.error:
             self.logger.error("Sweep {} failed during MTZ export".format(self.id))
             self.error = True
-            return

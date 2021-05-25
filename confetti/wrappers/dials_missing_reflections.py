@@ -18,7 +18,7 @@ class DialsMissingReflections(Wrapper):
         self.experiments = None
         self.reflections = None
         self.min_component_size = min_component_size
-        self.connected_reflections = []
+        self.connected_reflections_percentage = 0
         super(DialsMissingReflections, self).__init__(workdir=workdir)
 
     @property
@@ -86,8 +86,6 @@ class DialsMissingReflections(Wrapper):
         if len(unique_ms):
             n_expected = complete_set.size()
             for ms in unique_ms:
-                d_max, d_min = (uctbx.d_star_sq_as_d(ds2) for ds2 in ms.min_max_d_star_sq())
-                self.connected_reflections.append([ms.size(), 100 * ms.size() / n_expected, d_max, d_min])
+                self.connected_reflections_percentage += 100 * ms.size() / n_expected
         else:
             self.logger.warning("No connected regions of missing reflections identified")
-
