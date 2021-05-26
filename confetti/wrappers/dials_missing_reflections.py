@@ -88,4 +88,5 @@ class DialsMissingReflections(Wrapper):
             for ms in unique_ms:
                 self.connected_reflections_percentage += 100 * ms.size() / n_expected
         else:
+            self.connected_reflections_percentage = 0
             self.logger.warning("No connected regions of missing reflections identified")
