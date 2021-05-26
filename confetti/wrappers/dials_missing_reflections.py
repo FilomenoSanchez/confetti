@@ -1,6 +1,5 @@
 import io
 import os
-from cctbx import uctbx
 from confetti.wrappers.wrapper import Wrapper
 from confetti.io import Experiments, Reflections
 from dials.report.analysis import scaled_data_as_miller_array
