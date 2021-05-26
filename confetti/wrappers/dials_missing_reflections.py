@@ -58,7 +58,7 @@ class DialsMissingReflections(Wrapper):
 
         if len(reflections) != 1 and len(experiments) != len(reflections):
             self.logger.error("Number of experiments must equal the number of reflection tables")
-            return None
+            return
 
         reflections = parse_multiple_datasets(reflections)
         experiments, reflections = assign_unique_identifiers(experiments, reflections)
