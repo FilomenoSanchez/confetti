@@ -146,7 +146,7 @@ class Dataset(object):
                                       'DELTA_CCHALF_MEAN', 'CCHALF_STD', 'SCALE_N_DELETED_DATASETS', 'RPIM', 'RMEAS',
                                       'RMERGE', 'CCHALF', 'I/SIGMA', 'MULTIPLICITY', 'COMPLETENESS', 'RESOLUTION_LOW',
                                       'RESOLUTION_HIGH', 'COMPLETENESS_LOW', 'COMPLETENESS_HIGH', 'SPACE_GROUP',
-                                      'EXPT_IDS', 'SWEEPS']
+                                      'CONNECTED_REFLECTIONS', 'EXPT_IDS', 'SWEEPS']
 
     def create_mr_table(self):
         table = []
