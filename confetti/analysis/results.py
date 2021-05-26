@@ -105,7 +105,7 @@ class Results(object):
                 try:
                     with open(mr_pickle, 'rb') as fhandle:
                         mr = pickle.load(fhandle)
-                        if mr.shelxe is not None and mr.shelxe.logcontents is not None:
+                        if mr.buccaneer is not None and mr.buccaneer.logcontents is not None:
                             mr_table.append((self.dataset_id, mr.id, mr.searchmodel, *mr.summary, mr.mtz_fname))
                 except MemoryError:
                     continue
