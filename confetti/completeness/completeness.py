@@ -375,3 +375,26 @@ EOF""".format(**self.__dict__)
         del self.reflections.data['to_delete']
 
         self.update_table()
+
+    def remove_coord_chunks(self, sample=0.1, nchunks=2, coord='phi'):
+        miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
+        space_group = miller_array.space_group()
+        chunk_size = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample) / nchunks
+        print('Deleting {} chunks of {} reflections each'.format(nchunks, chunk_size))
+        df_sorted = self.table.loc[(self.table.IS_UNIQUE)].sort_values(by=coord)
+        df_to_delete = pd.concat([df_sorted.iloc[x:x + chunk_size] for x in np.random.randint(df_sorted.shape[0], size=nchunks)])
+
+        idx_delete = []
+        for h, k, l in zip(df_to_delete.H, df_to_delete.K, df_to_delete.L):
+            idx_delete += [equiv.mate().hr() for equiv in miller.sym_equiv_indices(space_group, (h, k, l)).indices()]
+            idx_delete += [equiv.mate().h() for equiv in miller.sym_equiv_indices(space_group, (h, k, l)).indices()]
+        idx_delete = set(idx_delete)
+
+        array_delete = [1 if idx in idx_delete else 0 for idx in self.reflections.data['miller_index']]
+        array_delete = array_family.flex.int(array_delete)
+        self.reflections.data['to_delete'] = array_delete
+        sel = self.reflections.data['to_delete'] == 1
+        self.reflections.data.del_selected(sel)
+        del self.reflections.data['to_delete']
+
+        self.update_table()
