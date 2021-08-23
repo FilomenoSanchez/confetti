@@ -376,13 +376,22 @@ EOF""".format(**self.__dict__)
 
         self.update_table()
 
-    def remove_coord_chunks(self, sample=0.1, nchunks=2, coord='phi'):
+    def remove_coord_chunks(self, sample=0.1, coord='phi', nchunks=2):
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         space_group = miller_array.space_group()
-        chunk_size = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample) / nchunks
+        chunk_size = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample / nchunks)
         print('Deleting {} chunks of {} reflections each'.format(nchunks, chunk_size))
         df_sorted = self.table.loc[(self.table.IS_UNIQUE)].sort_values(by=coord)
-        df_to_delete = pd.concat([df_sorted.iloc[x:x + chunk_size] for x in np.random.randint(df_sorted.shape[0], size=nchunks)])
+
+        df_to_delete = []
+        for chunk_idx in range(nchunks):
+            start = chunk_idx * (round(len(df_sorted) / nchunks))
+            stop = (chunk_idx + 1) * (round(len(df_sorted) / nchunks))
+            tmp_df = df_sorted.iloc[start:stop]
+            random_start = np.random.randint(tmp_df.shape[0] - chunk_size + 1)
+            df_to_delete.append(tmp_df.iloc[random_start:random_start + chunk_size])
+
+        df_to_delete = pd.concat(df_to_delete)
 
         idx_delete = []
         for h, k, l in zip(df_to_delete.H, df_to_delete.K, df_to_delete.L):
