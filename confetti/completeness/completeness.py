@@ -380,7 +380,7 @@ EOF""".format(**self.__dict__)
         miller_array = self.reflections.data.as_miller_array(self.experiments.data[0])
         space_group = miller_array.space_group()
         chunk_size = round(self.table.loc[(self.table.IS_UNIQUE)].shape[0] * sample / nchunks)
-        print('Deleting {} chunks of {} reflections each'.format(nchunks, chunk_size))
+        self.logger.info('Deleting {} chunks of {} reflections each'.format(nchunks, chunk_size))
         df_sorted = self.table.loc[(self.table.IS_UNIQUE)].sort_values(by=coord)
 
         df_to_delete = []
